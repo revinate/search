@@ -271,6 +271,10 @@ class SearchManager implements ObjectManager
 
         $metadata = $this->getClassMetadata($entityName);
         $repository = new EntityRepository($this, $metadata);
+        if ($metadata->repository) {
+            $repositoryClassName = $metadata->repository;
+            $repository = new $repositoryClassName($this, $metadata);
+        }
         $this->repositories[$entityName] = $repository;
 
         return $repository;
@@ -278,6 +282,8 @@ class SearchManager implements ObjectManager
 
     /**
      * Gets a collection of entity repositories.
+     * @deprecated [Daiyi] Didn't see a valid use case for this function, so only the getRepository would
+     *             respect the custom repository set in the annotation
      *
      * @param array $entityNames The names of the entities.
      * @return EntityRepositoryCollection The repository class.

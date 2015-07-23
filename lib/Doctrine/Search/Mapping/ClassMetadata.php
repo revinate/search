@@ -134,6 +134,11 @@ class ClassMetadata implements ClassMetadataInterface
     public $reflFields;
 
     /**
+     * @var string
+     */
+    public $repository;
+
+    /**
      * READ-ONLY: The field names of all fields that are part of the identifier/primary key
      * of the mapped entity class.
      *
@@ -171,6 +176,7 @@ class ClassMetadata implements ClassMetadataInterface
             'numberOfShards',
             'opType',
             'parent',
+            'repository',
             'timeToLive',
             'type',
             'value',

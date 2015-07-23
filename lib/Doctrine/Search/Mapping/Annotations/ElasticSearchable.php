@@ -62,4 +62,9 @@ final class ElasticSearchable extends Searchable
      * @var boolean
      */
     public $source;
+
+    /**
+     * @var string
+     */
+    public $repository;
 }
