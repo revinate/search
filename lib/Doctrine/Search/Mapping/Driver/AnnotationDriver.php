@@ -46,6 +46,8 @@ class AnnotationDriver extends AbstractAnnotationDriver
 
     protected $entityIdAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\Id';
 
+    protected $entityTimeSeriesFieldAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\TimeSeriesField';
+
     protected $entityParamAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\Parameter';
 
     /**
@@ -55,6 +57,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
         'Doctrine\\Search\\Mapping\\Annotations\\Id',        //Only here for convenience
         'Doctrine\\Search\\Mapping\\Annotations\\Parameter', //Only here for convenience
         'Doctrine\\Search\\Mapping\\Annotations\\Field',
+        'Doctrine\\Search\\Mapping\\Annotations\\TimeSeriesField',
         'Doctrine\\Search\\Mapping\\Annotations\\ElasticField',
         'Doctrine\\Search\\Mapping\\Annotations\\SolrField',
     );
@@ -143,6 +146,8 @@ class AnnotationDriver extends AbstractAnnotationDriver
                     if ($annotation instanceof $fieldAnnotationClass) {
                         if ($annotation instanceof $this->entityIdAnnotationClass) {
                             $metadata->setIdentifier($reflProperty->name);
+                        } elseif ($annotation instanceof $this->entityTimeSeriesFieldAnnotationClass) {
+                            $metadata->setTimeSeriesField($reflProperty->name);
                         } elseif ($annotation instanceof $this->entityParamAnnotationClass) {
                             $metadata->addParameterMapping($reflProperty, $annotation);
                         } else {
@@ -152,6 +157,15 @@ class AnnotationDriver extends AbstractAnnotationDriver
                     }
                 }
             }
+        }
+
+        $id = $metadata->getIdentifier();
+        if (empty($id)) {
+            throw new \Exception(__METHOD__ . ': Id field must be defined!');
+        }
+
+        if ($metadata->timeSeriesScale && !$metadata->getTimeSeriesField()) {
+            throw new \Exception(__METHOD__ . ': TimeSeriesField must be defined for a time series index!');
         }
 
         return $metadata;

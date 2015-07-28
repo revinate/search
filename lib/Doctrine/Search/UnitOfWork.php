@@ -143,13 +143,17 @@ class UnitOfWork
         }
 
         //TODO: single/array entity commit handling
-        $this->commitRemoved();
-        $this->commitPersisted();
+        try {
+            $this->commitRemoved();
+            $this->commitPersisted();
+        } catch (\Exception $e) {
+            throw new DoctrineSearchException(__METHOD__ . ': Error while committing: ' . $e->getMessage());
+        }
 
         //Force refresh of updated indexes
         if ($entity === true) {
             $client = $this->sm->getClient();
-            foreach (array_unique($this->updatedIndexes) as $index) {
+            foreach ($this->updatedIndexes as $index) {
                 $client->refreshIndex($index);
             }
         }
@@ -171,7 +175,10 @@ class UnitOfWork
 
         foreach ($sortedDocuments as $entityName => $documents) {
             $classMetadata = $this->sm->getClassMetadata($entityName);
-            $this->updatedIndexes[] = $classMetadata->index;
+            foreach ($documents as $document) {
+                $index = $classMetadata->getIndexForWrite($document);
+                $this->updatedIndexes[$index] = $index;
+            }
             $client->addDocuments($classMetadata, $documents);
         }
     }
@@ -186,7 +193,10 @@ class UnitOfWork
 
         foreach ($documents as $entityName => $documents) {
             $classMetadata = $this->sm->getClassMetadata($entityName);
-            $this->updatedIndexes[] = $classMetadata->index;
+            foreach ($documents as $document) {
+                $index = $classMetadata->getIndexForWrite($document);
+                $this->updatedIndexes[$index] = $index;
+            }
             $client->removeDocuments($classMetadata, $documents);
         }
     }
@@ -207,13 +217,7 @@ class UnitOfWork
 
         foreach ($objects as $object) {
             $document = $serialize ? $serializer->serialize($object) : $object;
-
-            $id = $object->getId();
-            if (!$id) {
-                throw new DoctrineSearchException('Entity must have an id to be indexed');
-            }
-
-            $documents[get_class($object)][$id] = $document;
+            $documents[get_class($object)][] = $document;
         }
 
         return $documents;

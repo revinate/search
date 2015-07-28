@@ -67,4 +67,9 @@ final class ElasticSearchable extends Searchable
      * @var string
      */
     public $repository;
+
+    /**
+     * @var string
+     */
+    public $timeSeriesScale;
 }

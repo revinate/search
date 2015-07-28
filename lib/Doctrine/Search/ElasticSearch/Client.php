@@ -68,13 +68,11 @@ class Client implements SearchClientInterface
      */
     public function addDocuments(ClassMetadata $class, array $documents)
     {
-        $type = $this->getIndex($class->index)->getType($class->type);
-
         $parameters = $this->getParameters($class->parameters);
+        $documentsByIndex = array();
 
-        $bulk = array();
-        foreach ($documents as $id => $document) {
-            $elasticaDoc = new Document($id);
+        foreach ($documents as $document) {
+            $elasticaDoc = new Document(isset($document["id"]) ? $document["id"] : '');
             foreach ($parameters as $name => $value) {
                 if (isset($document[$value])) {
                     if (method_exists($elasticaDoc, "set{$name}")) {
@@ -86,13 +84,17 @@ class Client implements SearchClientInterface
                 }
             }
             $elasticaDoc->setData($document);
-            $bulk[] = $elasticaDoc;
+            $documentsByIndex[$class->getIndexForWrite($document)][] = $elasticaDoc;
         }
 
-        if (count($bulk) > 1) {
-            $type->addDocuments($bulk);
-        } else {
-            $type->addDocument($bulk[0]);
+        foreach ($documentsByIndex as $index => $documents) {
+            $type = $this->getIndex($index)->getType($class->type);
+
+            if (count($documents) > 1) {
+                $type->addDocuments($documents);
+            } else {
+                $type->addDocument(reset($documents));
+            }
         }
     }
 
@@ -101,8 +103,19 @@ class Client implements SearchClientInterface
      */
     public function removeDocuments(ClassMetadata $class, array $documents)
     {
-        $type = $this->getIndex($class->index)->getType($class->type);
-        $type->deleteIds(array_keys($documents));
+        $idsByIndex = array();
+
+        foreach ($documents as $document) {
+            if (!method_exists($document, "getId") || is_null($document->getId())) {
+                throw new \RuntimeException(__METHOD__ . ": Unable to remove document with no id");
+            }
+            $idsByIndex[$class->getIndexForWrite($document)][] = $document->getId();
+        }
+
+        foreach ($idsByIndex as $index => $ids) {
+            $type = $this->getIndex($index)->getType($class->type);
+            $type->deleteByQuery(new Query\Terms('id', $ids));
+        }
     }
 
     /**
@@ -110,7 +123,7 @@ class Client implements SearchClientInterface
      */
     public function removeAll(ClassMetadata $class, $query = null)
     {
-        $type = $this->getIndex($class->index)->getType($class->type);
+        $type = $this->getIndex($class->getIndexForRead())->getType($class->type);
         $query = $query ?: new MatchAll();
         $type->deleteByQuery($query);
     }
@@ -120,14 +133,7 @@ class Client implements SearchClientInterface
      */
     public function find(ClassMetadata $class, $id, $options = array())
     {
-        try {
-            $type = $this->getIndex($class->index)->getType($class->type);
-            $document = $type->getDocument($id, $options);
-        } catch (NotFoundException $ex) {
-            throw new NoResultException();
-        }
-
-        return $document;
+        return $this->findOneBy($class, $class->getIdentifier(), $id);
     }
 
     public function findOneBy(ClassMetadata $class, $field, $value)
@@ -139,7 +145,6 @@ class Client implements SearchClientInterface
         $query->setSize(1);
 
         $results = $this->search($query, array($class));
-
         if (!$results->count()) {
             throw new NoResultException();
         }
@@ -159,9 +164,10 @@ class Client implements SearchClientInterface
     {
         $searchQuery = new Search($this->client);
         $searchQuery->setOption(Search::OPTION_VERSION, true);
+        /** @var ClassMetadata $class */
         foreach ($classes as $class) {
-            if ($class->index) {
-                $indexObject = $this->getIndex($class->index);
+            if ($class->getIndexForRead()) {
+                $indexObject = $this->getIndex($class->getIndexForRead());
                 $searchQuery->addIndex($indexObject);
                 if ($class->type) {
                     $searchQuery->addType($indexObject->getType($class->type));
@@ -218,7 +224,7 @@ class Client implements SearchClientInterface
      */
     public function createType(ClassMetadata $metadata)
     {
-        $type = $this->getIndex($metadata->index)->getType($metadata->type);
+        $type = $this->getIndex($metadata->getCurrentTimeSeriesIndex())->getType($metadata->type);
         $properties = $this->getMapping($metadata->fieldMappings);
         $rootProperties = $this->getRootMapping($metadata->rootMappings);
 
@@ -244,7 +250,7 @@ class Client implements SearchClientInterface
      */
     public function deleteType(ClassMetadata $metadata)
     {
-        $type = $this->getIndex($metadata->index)->getType($metadata->type);
+        $type = $this->getIndex($metadata->getIndexForRead())->getType($metadata->type);
         return $type->delete();
     }
 

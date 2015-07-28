@@ -66,7 +66,7 @@ class EntityRepository implements ObjectRepository
      */
     public function findAll()
     {
-        throw new DoctrineSearchException('Not yet implemented.');
+        return $this->findBy(array());
     }
 
     /**
@@ -134,7 +134,7 @@ class EntityRepository implements ObjectRepository
     /**
      * Returns the class metadata managed by the repository
      *
-     * @return string
+     * @return ClassMetadata
      */
     public function getClassMetadata()
     {

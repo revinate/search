@@ -43,6 +43,9 @@ use Doctrine\Search\Mapping\Annotations\ElasticRoot;
  */
 class ClassMetadata implements ClassMetadataInterface
 {
+    const TIME_SERIES_YEARLY = 'yearly';
+    const TIME_SERIES_MONTHLY = 'monthly';
+
     /**
      * @var string
      */
@@ -139,6 +142,16 @@ class ClassMetadata implements ClassMetadataInterface
     public $repository;
 
     /**
+     * @var string possible values: yearly, monthly
+     */
+    public $timeSeriesScale;
+
+    /**
+     * @var string
+     */
+    public $timeSeriesField;
+
+    /**
      * READ-ONLY: The field names of all fields that are part of the identifier/primary key
      * of the mapped entity class.
      *
@@ -181,7 +194,9 @@ class ClassMetadata implements ClassMetadataInterface
             'type',
             'value',
             'identifier',
-            'rootMappings'
+            'rootMappings',
+            'timeSeriesScale',
+            'timeSeriesField'
         );
     }
 
@@ -218,6 +233,35 @@ class ClassMetadata implements ClassMetadataInterface
     public function setIdentifier($identifier)
     {
         $this->identifier = $identifier;
+    }
+
+    /**
+     * Get the field used to determine the time series index
+     *
+     * @return string
+     */
+    public function getTimeSeriesField() {
+        return $this->timeSeriesField;
+    }
+
+    /**
+     * Set the field used to determine the time series index
+     *
+     * @param $timeSeriesField
+     */
+    public function setTimeSeriesField($timeSeriesField) {
+        $this->timeSeriesField = $timeSeriesField;
+    }
+
+    /**
+     * Whether the field is used to determine the time series index
+     *
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    public function isTimeSeriesField($fieldName) {
+        return $this->timeSeriesField === $fieldName;
     }
 
     /**
@@ -438,5 +482,58 @@ class ClassMetadata implements ClassMetadataInterface
     {
         $this->reflClass = $reflService->getClass($this->className);
         $this->className = $this->reflClass->getName(); // normalize classname
+    }
+
+    /**
+     * @return string
+     */
+    public function getIndexForRead() {
+        $indexName = $this->index;
+        if ($this->timeSeriesScale) {
+            $indexName .= '_*';
+        }
+        return $indexName;
+    }
+
+    /**
+     * @param array $document
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function getIndexForWrite($document) {
+        $indexName = $this->index;
+        if ($this->timeSeriesScale) {
+            if (!isset($document[$this->getTimeSeriesField()])) {
+                throw new \Exception(__METHOD__ . ': TimeSeriesField must be defined for a time series index!');
+            }
+            $indexName .= $this->getTimeSeriesSuffix($document[$this->getTimeSeriesField()]);
+        }
+        return $indexName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrentTimeSeriesIndex() {
+        return $this->index . $this->getTimeSeriesSuffix(date('c'));
+    }
+
+    /**
+     * @param string $isoDateTime ISO 8601 date
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getTimeSeriesSuffix($isoDateTime) {
+        $datetime = new \DateTime($isoDateTime);
+        switch ($this->timeSeriesScale) {
+            case self::TIME_SERIES_YEARLY:
+                return '_' . $datetime->format('Y');
+            case self::TIME_SERIES_MONTHLY:
+                return '_' . $datetime->format('Y') . '_' . $datetime->format('m');
+            default:
+                throw new \Exception(__METHOD__ . ': Invalid time series scale! Must be set to ' . self::TIME_SERIES_YEARLY . ' or ' . self::TIME_SERIES_MONTHLY);
+        }
     }
 }
