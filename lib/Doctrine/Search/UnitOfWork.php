@@ -244,6 +244,22 @@ class UnitOfWork
     }
 
     /**
+     * Load and hydrate documents based on critera
+     *
+     * @param ClassMetadata $class
+     * @param array         $criteria
+     * @param array|null    $orderBy
+     * @param int           $limit
+     * @param int           $offset
+     *
+     * @return ArrayCollection
+     */
+    public function loadBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+        $results = $this->sm->getClient()->findBy($class, $criteria, $orderBy, $limit, $offset);
+        return $this->hydrateCollection(array($class), $results);
+    }
+
+    /**
      * Load and hydrate a document collection
      *
      * @param array $classes

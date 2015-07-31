@@ -85,7 +85,7 @@ class EntityRepository implements ObjectRepository
      */
     public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
-        throw new DoctrineSearchException('Not yet implemented.');
+        return $this->_sm->getUnitOfWork()->loadBy($this->_class, $criteria, $orderBy, $limit, $offset);
     }
 
     /**

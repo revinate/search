@@ -49,6 +49,17 @@ interface SearchClientInterface
     public function findOneBy(ClassMetadata $class, $field, $value);
 
     /**
+     * Finds document by specified criteria.
+     *
+     * @param ClassMetadata $class
+     * @param array         $criteria
+     * @param array         $orderBy
+     * @param int           $limit
+     * @param int           $offset
+     */
+    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null);
+
+    /**
      * Finds all documents
      *
      * @param array $classes

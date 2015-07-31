@@ -19,10 +19,17 @@
 
 namespace Doctrine\Search\ElasticSearch;
 
+use Doctrine\Search\Criteria\Range;
+use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
 use Doctrine\Search\Exception\NoResultException;
 use Elastica\Client as ElasticaClient;
+use Elastica\Facet\Filter;
+use Elastica\Filter\BoolAnd;
+use Elastica\Filter\HasChild;
+use Elastica\Filter\HasParent;
+use Elastica\Filter\Terms;
 use Elastica\Type\Mapping;
 use Elastica\Document;
 use Elastica\Index;
@@ -136,6 +143,9 @@ class Client implements SearchClientInterface
         return $this->findOneBy($class, $class->getIdentifier(), $id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function findOneBy(ClassMetadata $class, $field, $value)
     {
         $filter = new Term(array($field => $value));
@@ -150,6 +160,50 @@ class Client implements SearchClientInterface
         }
 
         return $results[0];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+        $query = new Query();
+        if (empty($criteria)) {
+            $query->setQuery(new MatchAll());
+        } else {
+            $boolAndFilter = new BoolAnd();
+            foreach ($criteria as $key => $value) {
+                if ($this->isHasChild($key) || $this->isHasParent($key)) {
+                    $filter = $this->getFilterForHasParentOrHasChild($key, $value);
+                } elseif ($value instanceof Range) {
+                    $filter = $this->getRangeFilter($key, $value);
+                } elseif (is_array($value)) {
+                    $filter = new Terms($key, $value);
+                } else {
+                    $filter = new Term(array($key => $value));
+                }
+                $boolAndFilter->addFilter($filter);
+            }
+            $query->setQuery(new Filtered(null, $boolAndFilter));
+        }
+
+        if ($orderBy) {
+            $query->setSort($orderBy);
+        }
+
+        if ($limit) {
+            $query->setSize($limit);
+        }
+
+        if ($offset) {
+            $query->setFrom($offset);
+        }
+
+        $results = $this->search($query, array($class));
+        if (!$results->count()) {
+            throw new NoResultException();
+        }
+
+        return $results;
     }
 
     /**
@@ -390,5 +444,80 @@ class Client implements SearchClientInterface
         }
 
         return $properties;
+    }
+
+    /**
+     * @param string $field
+     * @param Range  $range
+     *
+     * @return \Elastica\Filter\Range
+     */
+    protected function getRangeFilter($field, Range $range) {
+        $rangeArray = array();
+        $rangeArray[$range->getComparator1()] = $range->getValue1();
+
+        if ($range->getComparator2()) {
+            $rangeArray[$range->getComparator2()] = $range->getValue2();
+        }
+        return new \Elastica\Filter\Range($field, $rangeArray);
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    protected function isHasParent($key) {
+        return $this->startsWith($key, '_parent.');
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    protected function isHasChild($key) {
+        return $this->startsWith($key, '_child.');
+    }
+
+    /**
+     * @param string $haystack
+     * @param string $needle
+     *
+     * @return bool
+     */
+    protected function startsWith($haystack, $needle){
+        return strpos($haystack, $needle) === 0;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     *
+     * @return HasChild|HasParent
+     * @throws \Exception
+     */
+    protected function getFilterForHasParentOrHasChild($key, $value) {
+        $parts = explode('.', $key);
+        if (3 != count($parts)) {
+            throw new InvalidArgumentException(__METHOD__ . ': Find by child or parent must be of the form "_child.type.field" or "_parent.type.field"');
+        }
+
+        $type = $parts[1];
+        $field = $parts[2];
+
+        if (is_array($value)) {
+            $filter = new Terms($field, $value);
+        } else {
+            $filter = new Term(array($field => $value));
+        }
+
+        if ($this->isHasChild($key)) {
+            return new HasChild($filter, $type);
+        } elseif ($this->isHasParent($key)) {
+            return new HasParent($filter, $type);
+        } else {
+            throw new \Exception(__METHOD__ . ': Programming error');
+        }
     }
 }
