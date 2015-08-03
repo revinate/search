@@ -152,6 +152,11 @@ class ClassMetadata implements ClassMetadataInterface
     public $timeSeriesField;
 
     /**
+     * @var string
+     */
+    public $dynamic;
+
+    /**
      * READ-ONLY: The field names of all fields that are part of the identifier/primary key
      * of the mapped entity class.
      *
@@ -196,7 +201,8 @@ class ClassMetadata implements ClassMetadataInterface
             'identifier',
             'rootMappings',
             'timeSeriesScale',
-            'timeSeriesField'
+            'timeSeriesField',
+            'dynamic'
         );
     }
 
@@ -535,5 +541,15 @@ class ClassMetadata implements ClassMetadataInterface
             default:
                 throw new \Exception(__METHOD__ . ': Invalid time series scale! Must be set to ' . self::TIME_SERIES_YEARLY . ' or ' . self::TIME_SERIES_MONTHLY);
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getSettings() {
+        return array(
+            'index.number_of_replicas' => $this->numberOfReplicas,
+            'index.number_of_shards' => $this->numberOfShards
+        );
     }
 }

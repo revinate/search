@@ -72,4 +72,9 @@ final class ElasticSearchable extends Searchable
      * @var string
      */
     public $timeSeriesScale;
+
+    /**
+     * @var string
+     */
+    public $dynamic;
 }

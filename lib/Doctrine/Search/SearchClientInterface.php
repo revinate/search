@@ -142,4 +142,40 @@ interface SearchClientInterface
      * @param object $query
      */
     public function removeAll(ClassMetadata $class, $query = null);
+
+    /**
+     * Update the existing field mapping
+     *
+     * @param ClassMetadata $class
+     *
+     * @return boolean
+     */
+    public function updateMapping(ClassMetadata $class);
+
+    /**
+     * Create templates for all the given indices
+     *
+     * @param array $indexToMetadatas
+     *
+     * @return mixed
+     */
+    public function createTemplates($indexToMetadatas);
+
+    /**
+     * Get an existing template
+     *
+     * @param ClassMetadata $class
+     *
+     * @return array
+     */
+    public function getTemplate(ClassMetadata $class);
+
+    /**
+     * Delete an existing template
+     *
+     * @param ClassMetadata $class
+     *
+     * @return boolean
+     */
+    public function deleteTemplate(ClassMetadata $class);
 }

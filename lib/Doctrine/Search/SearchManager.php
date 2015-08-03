@@ -20,6 +20,7 @@
 namespace Doctrine\Search;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Search\ElasticSearch\MappingManager;
 use Doctrine\Search\Exception\UnexpectedTypeException;
 use Doctrine\Common\EventManager;
 
@@ -69,6 +70,8 @@ class SearchManager implements ObjectManager
      */
     private $repositories = array();
 
+    private $mappingManager;
+
     /**
      * The UnitOfWork used to coordinate object-level transactions.
      *
@@ -96,6 +99,8 @@ class SearchManager implements ObjectManager
 
         $this->serializer = $this->configuration->getEntitySerializer();
         $this->entityManager = $this->configuration->getEntityManager();
+
+        $this->mappingManager = new MappingManager($this);
 
         $this->unitOfWork = new UnitOfWork($this);
     }
@@ -295,6 +300,15 @@ class SearchManager implements ObjectManager
             $repositoryCollection->addRepository($this->getRepository($entityName));
         }
         return $repositoryCollection;
+    }
+
+    /**
+     * Get the MappingManager
+     *
+     * @return MappingManager
+     */
+    public function getMappingManager() {
+        return $this->mappingManager;
     }
 
     /**

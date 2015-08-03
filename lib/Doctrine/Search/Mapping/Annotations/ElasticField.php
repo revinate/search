@@ -71,4 +71,9 @@ final class ElasticField extends Field
      * @var mixed
      */
     public $nullValue;
+
+    /**
+     * @var string
+     */
+    public $dynamic;
 }

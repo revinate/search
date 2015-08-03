@@ -20,6 +20,7 @@
 namespace Doctrine\Search\ElasticSearch;
 
 use Doctrine\Search\Criteria\Range;
+use Doctrine\Search\ElasticSearch\RevinateElastica\Template;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
@@ -30,6 +31,7 @@ use Elastica\Filter\BoolAnd;
 use Elastica\Filter\HasChild;
 use Elastica\Filter\HasParent;
 use Elastica\Filter\Terms;
+use Elastica\Type;
 use Elastica\Type\Mapping;
 use Elastica\Document;
 use Elastica\Index;
@@ -356,6 +358,10 @@ class Client implements SearchClientInterface
                 $properties[$propertyName]['index_name'] = $fieldMapping->indexName;
             }
 
+            if (isset($fieldMapping->dynamic)) {
+                $properties[$propertyName]['dynamic'] = $fieldMapping->dynamic;
+            }
+
             if ($fieldMapping->type == 'attachment' && isset($fieldMapping->fields)) {
                 $callback = function ($field) {
                     unset($field['type']);
@@ -374,6 +380,26 @@ class Client implements SearchClientInterface
         }
 
         return $properties;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function updateMapping(ClassMetadata $classMetadata) {
+        try {
+            $elasticaIndex = new Index($this->client, $classMetadata->getIndexForRead());
+            $elasticaType = new Type($elasticaIndex, $classMetadata->type);
+            $elasticaTypeMapping = new Mapping($elasticaType, $this->getMapping($classMetadata->fieldMappings));
+            $elasticaTypeMapping->setParam('_id', array('path' => $classMetadata->getIdentifier()));
+            if ($classMetadata->dynamic) {
+                $elasticaTypeMapping->setParam('dynamic', $classMetadata->dynamic);
+            }
+            $response = $elasticaType->setMapping($elasticaTypeMapping);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return 200 == $response->getStatus();
     }
 
     /**
@@ -519,5 +545,59 @@ class Client implements SearchClientInterface
         } else {
             throw new \Exception(__METHOD__ . ': Programming error');
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createTemplates($indexToMetadatas) {
+        $elasticaTemplate = new Template($this->client);
+
+        try {
+            foreach ($indexToMetadatas as $index => $metadatas) {
+                $mappings = array();
+                /** @var ClassMetadata $metadata */
+                foreach ($metadatas as $metadata) {
+                    $mappings[$metadata->type]['_id']['path'] = $metadata->getIdentifier();
+                    if ($metadata->dynamic) {
+                        $mappings[$metadata->type]['dynamic'] = $metadata->dynamic;
+                    }
+                    $mappings[$metadata->type]['properties'] = $this->getMapping($metadata->fieldMappings);
+                }
+                $response = $elasticaTemplate->createTemplate($metadata->index, $metadata->getIndexForRead(), $metadata->getSettings(), $mappings);
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return 200 == $response->getStatus();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTemplate(ClassMetadata $classMetadata) {
+        $elasticaTemplate = new Template($this->client);
+
+        try {
+            $template = $elasticaTemplate->getTemplate($classMetadata->index);
+        } catch (\Exception $e) {
+            throw new NoResultException();
+        }
+        return $template;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function deleteTemplate(ClassMetadata $classMetadata) {
+        $elasticaTemplate = new Template($this->client);
+
+        try {
+            $response = $elasticaTemplate->deleteTemplate($classMetadata->index);
+        } catch (\Exception $e) {
+            return false;
+        }
+        return 200 == $response->getStatus();
     }
 }
