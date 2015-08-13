@@ -39,7 +39,9 @@ class MappingManager {
             }
         }
 
-        $this->client->createTemplates($indexToMetadatas);
+        if (! empty($indexToMetadatas)) {
+            $this->client->createTemplates($indexToMetadatas);
+        }
     }
 
     /**

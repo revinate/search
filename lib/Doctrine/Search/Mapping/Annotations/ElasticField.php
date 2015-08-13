@@ -76,4 +76,9 @@ final class ElasticField extends Field
      * @var string
      */
     public $dynamic;
+
+    /**
+     * @var string
+     */
+    public $latLon;
 }

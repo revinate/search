@@ -362,6 +362,10 @@ class Client implements SearchClientInterface
                 $properties[$propertyName]['dynamic'] = $fieldMapping->dynamic;
             }
 
+            if (isset($fieldMapping->latLon)) {
+                $properties[$propertyName]['lat_lon'] = $fieldMapping->latLon;
+            }
+
             if ($fieldMapping->type == 'attachment' && isset($fieldMapping->fields)) {
                 $callback = function ($field) {
                     unset($field['type']);
@@ -564,6 +568,7 @@ class Client implements SearchClientInterface
                     }
                     $mappings[$metadata->type]['properties'] = $this->getMapping($metadata->fieldMappings);
                 }
+
                 $response = $elasticaTemplate->createTemplate($metadata->index, $metadata->getIndexForRead(), $metadata->getSettings(), $mappings);
             }
         } catch (\Exception $e) {
