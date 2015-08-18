@@ -280,7 +280,8 @@ class Client implements SearchClientInterface
      */
     public function createType(ClassMetadata $metadata)
     {
-        $type = $this->getIndex($metadata->getCurrentTimeSeriesIndex())->getType($metadata->type);
+        $indexName = $metadata->timeSeriesScale ? $metadata->getCurrentTimeSeriesIndex() : $metadata->index;
+        $type = $this->getIndex($indexName)->getType($metadata->type);
         $properties = $this->getMapping($metadata->fieldMappings);
         $rootProperties = $this->getRootMapping($metadata->rootMappings);
 
@@ -292,6 +293,7 @@ class Client implements SearchClientInterface
         if (isset($metadata->parent)) {
             $mapping->setParent($metadata->parent);
         }
+
         foreach ($rootProperties as $key => $value) {
             $mapping->setParam($key, $value);
         }
