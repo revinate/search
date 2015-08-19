@@ -150,4 +150,14 @@ class EntityRepository implements ObjectRepository
     {
         return $this->_sm;
     }
+
+    /**
+     * @param $entity
+     *
+     * @throws Exception\UnexpectedTypeException
+     */
+    public function save($entity) {
+        $this->_sm->persist($entity);
+        $this->_sm->flush($entity);
+    }
 }

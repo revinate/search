@@ -59,7 +59,7 @@ class UnitOfWork
     /**
      * Initializes a new UnitOfWork instance, bound to the given SearchManager.
      *
-     * @param \Doctrine\Search\EntityManager $sm
+     * @param SearchManager $sm
      */
     public function __construct(SearchManager $sm)
     {

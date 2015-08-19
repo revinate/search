@@ -66,7 +66,7 @@ final class ElasticField extends Field
      * @var boolean
      */
     public $store;
-    
+
     /**
      * @var mixed
      */
@@ -81,4 +81,9 @@ final class ElasticField extends Field
      * @var string
      */
     public $latLon;
+
+    /**
+     * @var string
+     */
+    public $format;
 }

@@ -93,6 +93,12 @@ class Client implements SearchClientInterface
                 }
             }
             $elasticaDoc->setData($document);
+            if ($parentField = $class->getParentField()) {
+                if (empty($document[$parentField])) {
+                    throw new InvalidArgumentException('Document with id: ' . $document['id'] . ' misses the value for the parent');
+                }
+                $elasticaDoc->setParent($document[$parentField]);
+            }
             $documentsByIndex[$class->getIndexForWrite($document)][] = $elasticaDoc;
         }
 
@@ -366,6 +372,10 @@ class Client implements SearchClientInterface
 
             if (isset($fieldMapping->latLon)) {
                 $properties[$propertyName]['lat_lon'] = $fieldMapping->latLon;
+            }
+
+            if (isset($fieldMapping->format)) {
+                $properties[$propertyName]['format'] = $fieldMapping->format;
             }
 
             if ($fieldMapping->type == 'attachment' && isset($fieldMapping->fields)) {

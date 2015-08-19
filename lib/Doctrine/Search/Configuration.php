@@ -21,6 +21,7 @@ namespace Doctrine\Search;
 
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\Mapping\ClassMetadataFactory;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Search\Serializer\CallbackSerializer;
@@ -177,4 +178,45 @@ class Configuration
             return $this->attributes['entityManager'];
         }
     }
+
+    /**
+     * Resolves a registered namespace alias to the full namespace.
+     *
+     * @param string $entityNamespaceAlias
+     *
+     * @return string
+     *
+     * @throws ORMException
+     */
+    public function getEntityNamespace($entityNamespaceAlias)
+    {
+        if ( ! isset($this->attributes['entityNamespaces'][$entityNamespaceAlias])) {
+            throw new InvalidArgumentException('Unknown entity namespace alias:' . $entityNamespaceAlias);
+        }
+
+        return trim($this->attributes['entityNamespaces'][$entityNamespaceAlias], '\\');
+    }
+
+    /**
+     * Sets the entity alias map.
+     *
+     * @param array $entityNamespaces
+     *
+     * @return void
+     */
+    public function setEntityNamespaces(array $entityNamespaces)
+    {
+        $this->attributes['entityNamespaces'] = $entityNamespaces;
+    }
+
+    /**
+     * Retrieves the list of registered entity namespace aliases.
+     *
+     * @return array
+     */
+    public function getEntityNamespaces()
+    {
+        return $this->attributes['entityNamespaces'];
+    }
+
 }

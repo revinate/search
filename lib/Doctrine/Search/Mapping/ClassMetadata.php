@@ -154,6 +154,11 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * @var string
      */
+    public $parentField;
+
+    /**
+     * @var string
+     */
     public $dynamic;
 
     /**
@@ -202,6 +207,7 @@ class ClassMetadata implements ClassMetadataInterface
             'rootMappings',
             'timeSeriesScale',
             'timeSeriesField',
+            'parentField',
             'dynamic'
         );
     }
@@ -257,6 +263,22 @@ class ClassMetadata implements ClassMetadataInterface
      */
     public function setTimeSeriesField($timeSeriesField) {
         $this->timeSeriesField = $timeSeriesField;
+    }
+
+    /**
+     * Get the field of the _parent value
+     *
+     * @return string
+     */
+    public function getParentField() {
+        return $this->parentField;
+    }
+
+    /**
+     * @param $parentField
+     */
+    public function setParentField($parentField) {
+        $this->parentField = $parentField;
     }
 
     /**

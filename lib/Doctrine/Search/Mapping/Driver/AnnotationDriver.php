@@ -48,6 +48,8 @@ class AnnotationDriver extends AbstractAnnotationDriver
 
     protected $entityTimeSeriesFieldAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\TimeSeriesField';
 
+    protected $entityParentFieldAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\ParentField';
+
     protected $entityParamAnnotationClass = 'Doctrine\\Search\\Mapping\\Annotations\\Parameter';
 
     /**
@@ -59,6 +61,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
         'Doctrine\\Search\\Mapping\\Annotations\\Field',
         'Doctrine\\Search\\Mapping\\Annotations\\TimeSeriesField',
         'Doctrine\\Search\\Mapping\\Annotations\\ElasticField',
+        'Doctrine\\Search\\Mapping\\Annotations\\ParentField',
         'Doctrine\\Search\\Mapping\\Annotations\\SolrField',
     );
 
@@ -150,6 +153,8 @@ class AnnotationDriver extends AbstractAnnotationDriver
                             $metadata->setTimeSeriesField($reflProperty->name);
                         } elseif ($annotation instanceof $this->entityParamAnnotationClass) {
                             $metadata->addParameterMapping($reflProperty, $annotation);
+                        } elseif ($annotation instanceof $this->entityParentFieldAnnotationClass) {
+                            $metadata->setParentField($reflProperty->name);
                         } else {
                             $metadata->addFieldMapping($reflProperty, $annotation);
                         }
