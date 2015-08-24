@@ -21,12 +21,23 @@ namespace Doctrine\Search;
 
 use Doctrine\Search\Exception\DoctrineSearchException;
 use Elastica;
+use Elastica\Aggregation\AbstractAggregation;
 
+/**
+ * Class Query
+ *
+ * @package Doctrine\Search
+ *
+ * @method Query addAggregation(AbstractAggregation $aggregation)
+ * @method Query setLimit($limit = 10)
+ * @method Query setFrom($from)
+ * @method Query setSort($sort)
+ */
 class Query
 {
     const HYDRATE_BYPASS = -1;
-
     const HYDRATE_INTERNAL = -2;
+    const HYDRATE_AGGREGATION = -3;
 
     const HYDRATION_PARAMETER = 'ids';
 
@@ -58,7 +69,7 @@ class Query
     /**
      * @var integer
      */
-    protected $hydrationMode;
+    protected $hydrationMode = self::HYDRATE_INTERNAL;
 
     /**
      * @var boolean
@@ -197,10 +208,6 @@ class Query
      */
     protected function getHydrationQuery()
     {
-        if (!$this->hydrationQuery) {
-            throw new DoctrineSearchException('A hydration query is required for hydrating results to entities.');
-        }
-
         return $this->hydrationQuery;
     }
 
@@ -229,28 +236,33 @@ class Query
             $this->count = $resultSet->getTotalHits();
             $this->facets = $resultSet->getFacets();
             $results = $resultSet->getResults();
-
         } else {
             $resultClass = get_class($resultSet);
             throw new DoctrineSearchException("Unexpected result set class '$resultClass'");
         }
 
-        // Return results depending on hydration mode
-        if ($this->hydrationMode == self::HYDRATE_BYPASS) {
-            return $resultSet;
-        } elseif ($this->hydrationMode == self::HYDRATE_INTERNAL) {
-            return $this->sm->getUnitOfWork()->hydrateCollection($classes, $resultSet);
+        // If having the hydration query set, hydrate using the hydrate query
+        if ($this->getHydrationQuery()) {
+            // Document ids are used to lookup dbms results
+            $fn = function ($result) {
+                return $result->getId();
+            };
+            $ids = array_map($fn, $results);
+
+            return $this->getHydrationQuery()
+                ->setParameter($this->hydrationParameter, $ids ?: null)
+                ->useResultCache($this->useResultCache, $this->cacheLifetime)
+                ->getResult($this->hydrationMode);
         }
 
-        // Document ids are used to lookup dbms results
-        $fn = function ($result) {
-            return $result->getId();
-        };
-        $ids = array_map($fn, $results);
+        // Return results depending on hydration mode
+        switch ($this->hydrationMode) {
+            case self::HYDRATE_BYPASS:
+                return $resultSet;
+            case self::HYDRATE_AGGREGATION:
+                return $resultSet->getAggregations();
+        }
 
-        return $this->getHydrationQuery()
-            ->setParameter($this->hydrationParameter, $ids ?: null)
-            ->useResultCache($this->useResultCache, $this->cacheLifetime)
-            ->getResult($this->hydrationMode);
+        return $this->sm->getUnitOfWork()->hydrateCollection($classes, $resultSet);
     }
 }

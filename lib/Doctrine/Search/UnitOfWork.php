@@ -23,6 +23,7 @@ use Doctrine\Search\SearchManager;
 use Doctrine\Search\Exception\DoctrineSearchException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Search\Mapping\ClassMetadata;
+use Elastica\ResultSet;
 use Traversable;
 
 class UnitOfWork
@@ -279,7 +280,13 @@ class UnitOfWork
      */
     public function hydrateCollection(array $classes, Traversable $resultSet)
     {
-        $collection = new ArrayCollection();
+        if ($resultSet instanceof ResultSet) {
+            $collection = new ElasticsearchEntityCollection();
+            $collection->setTotal($resultSet->getTotalHits());
+        } else {
+            $collection = new ArrayCollection();
+        }
+
         foreach ($resultSet as $document) {
             foreach ($classes as $class) {
                 if ($document->getIndex() == $class->index && $document->getType() == $class->type) {

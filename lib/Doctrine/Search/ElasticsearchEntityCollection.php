@@ -1,0 +1,32 @@
+<?php
+namespace Doctrine\Search;
+
+use Doctrine\Common\Collections\ArrayCollection;
+
+/**
+ * Class ElasticsearchEntityCollection
+ *
+ * This is a decorator to the array collection for collection of elasticsearch entities
+ *
+ * @package Doctrine\Search
+ */
+class ElasticsearchEntityCollection extends ArrayCollection {
+
+    /** @var integer */
+    private $total;
+
+    /**
+     * @return integer
+     */
+    public function getTotal() {
+        return $this->total;
+    }
+
+    /**
+     * @param integer $total
+     */
+    public function setTotal($total) {
+        $this->total = $total;
+    }
+
+}
