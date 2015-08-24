@@ -159,6 +159,16 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * @var string
      */
+    public $versionField;
+
+    /**
+     * @var string
+     */
+    public $versionType;
+
+    /**
+     * @var string
+     */
     public $dynamic;
 
     /**
@@ -207,6 +217,8 @@ class ClassMetadata implements ClassMetadataInterface
             'rootMappings',
             'timeSeriesScale',
             'timeSeriesField',
+            'versionField',
+            'versionType',
             'parentField',
             'dynamic'
         );
@@ -279,6 +291,34 @@ class ClassMetadata implements ClassMetadataInterface
      */
     public function setParentField($parentField) {
         $this->parentField = $parentField;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersionField() {
+        return $this->versionField;
+    }
+
+    /**
+     * @param string $versionField
+     */
+    public function setVersionField($versionField) {
+        $this->versionField = $versionField;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersionType() {
+        return $this->versionType;
+    }
+
+    /**
+     * @param string $versionType
+     */
+    public function setVersionType($versionType) {
+        $this->versionType = $versionType;
     }
 
     /**

@@ -95,9 +95,16 @@ class Client implements SearchClientInterface
             $elasticaDoc->setData($document);
             if ($parentField = $class->getParentField()) {
                 if (empty($document[$parentField])) {
-                    throw new InvalidArgumentException('Document with id: ' . $document['id'] . ' misses the value for the parent');
+                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: '. $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the parent');
                 }
                 $elasticaDoc->setParent($document[$parentField]);
+            }
+
+            if ($versionField = $class->getVersionField()) {
+                if (empty($document[$versionField])) {
+                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: '. $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the version');
+                }
+                $elasticaDoc->setVersionType($class->getVersionType());
             }
             $documentsByIndex[$class->getIndexForWrite($document)][] = $elasticaDoc;
         }
