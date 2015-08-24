@@ -22,7 +22,7 @@ class Range {
      * @param string $comparator2
      * @param string $value2
      *
-     * @throws \Exception
+     * @throws InvalidArgumentException
      */
     public function __construct($comparator1, $value1, $comparator2 = null, $value2 = null) {
         $this->comparator1 = $comparator1;

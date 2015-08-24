@@ -19,6 +19,7 @@
 
 namespace Doctrine\Search\ElasticSearch;
 
+use Doctrine\Search\Criteria\Not;
 use Doctrine\Search\Criteria\Range;
 use Doctrine\Search\ElasticSearch\RevinateElastica\Template;
 use Doctrine\Search\Exception\InvalidArgumentException;
@@ -178,27 +179,22 @@ class Client implements SearchClientInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Generate query used by findBy()
+     *
+     * @param array      $criteria
+     * @param array|null $orderBy
+     * @param int        $limit
+     * @param int        $offset
+     *
+     * @return Query
      */
-    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
         $query = new Query();
+
         if (empty($criteria)) {
             $query->setQuery(new MatchAll());
         } else {
-            $boolAndFilter = new BoolAnd();
-            foreach ($criteria as $key => $value) {
-                if ($this->isHasChild($key) || $this->isHasParent($key)) {
-                    $filter = $this->getFilterForHasParentOrHasChild($key, $value);
-                } elseif ($value instanceof Range) {
-                    $filter = $this->getRangeFilter($key, $value);
-                } elseif (is_array($value)) {
-                    $filter = new Terms($key, $value);
-                } else {
-                    $filter = new Term(array($key => $value));
-                }
-                $boolAndFilter->addFilter($filter);
-            }
-            $query->setQuery(new Filtered(null, $boolAndFilter));
+            $query->setQuery(new Filtered(null, $this->generateFilterBy($criteria)));
         }
 
         if ($orderBy) {
@@ -213,6 +209,40 @@ class Client implements SearchClientInterface
             $query->setFrom($offset);
         }
 
+        return $query;
+    }
+
+    /**
+     * Generate filter used by generateQueryBy()
+     *
+     * @param array $criteria
+     *
+     * @return BoolAnd
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function generateFilterBy(array $criteria) {
+        $boolAndFilter = new BoolAnd();
+        foreach ($criteria as $key => $value) {
+            if ($this->isHasChild($key) || $this->isHasParent($key)) {
+                $filter = $this->getFilterForHasParentOrHasChild($key, $value);
+            } elseif ($value instanceof Range) {
+                $filter = $this->getRangeFilter($key, $value);
+            } elseif ($value instanceof Not) {
+                $filter = $this->getNotFilter($key, $value);
+            } else {
+                $filter = $this->getTermOrTermsFilter($key, $value);
+            }
+            $boolAndFilter->addFilter($filter);
+        }
+        return $boolAndFilter;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+        $query = $this->generateQueryBy($criteria, $orderBy, $limit, $offset);
         $results = $this->search($query, array($class));
         if (!$results->count()) {
             throw new NoResultException();
@@ -512,6 +542,16 @@ class Client implements SearchClientInterface
     }
 
     /**
+     * @param string $field
+     * @param Not    $not
+     *
+     * @return \Elastica\Filter\BoolNot
+     */
+    protected function getNotFilter($field, Not $not) {
+        return new \Elastica\Filter\BoolNot($this->getTermOrTermsFilter($field, $not->getValue()));
+    }
+
+    /**
      * @param string $key
      *
      * @return bool
@@ -555,10 +595,9 @@ class Client implements SearchClientInterface
         $type = $parts[1];
         $field = $parts[2];
 
-        if (is_array($value)) {
-            $filter = new Terms($field, $value);
-        } else {
-            $filter = new Term(array($field => $value));
+        $filter = $this->getTermOrTermsFilter($field, $value);
+        if ($value instanceof Not) {
+            $filter = $this->getNotFilter($field, $value);
         }
 
         if ($this->isHasChild($key)) {
@@ -567,6 +606,20 @@ class Client implements SearchClientInterface
             return new HasParent($filter, $type);
         } else {
             throw new \Exception(__METHOD__ . ': Programming error');
+        }
+    }
+
+    /**
+     * @param string $field
+     * @param mixed  $value
+     *
+     * @return Term|Terms
+     */
+    protected function getTermOrTermsFilter($field, $value) {
+        if (is_array($value)) {
+            return new Terms($field, $value);
+        } else {
+            return new Term(array($field => $value));
         }
     }
 
