@@ -79,4 +79,26 @@ class MappingManager {
             $this->client->updateMapping($metadata);
         }
     }
+
+    /**
+     * Delete all templates
+     */
+    public function deleteAllTemplates() {
+        /** @var ClassMetadata[] $metadatas */
+        $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
+        foreach ($metadatas as $metadata) {
+            $this->client->deleteTemplate($metadata);
+        }
+    }
+
+    /**
+     * Delete all indices
+     */
+    public function deleteAllIndices() {
+        /** @var ClassMetadata[] $metadatas */
+        $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
+        foreach ($metadatas as $metadata) {
+            $this->client->deleteIndex($metadata->getIndexForRead());
+        }
+    }
 }

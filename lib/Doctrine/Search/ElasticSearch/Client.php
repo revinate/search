@@ -27,7 +27,6 @@ use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
 use Doctrine\Search\Exception\NoResultException;
 use Elastica\Client as ElasticaClient;
-use Elastica\Facet\Filter;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\HasChild;
 use Elastica\Filter\HasParent;
@@ -38,9 +37,7 @@ use Elastica\Document;
 use Elastica\Index;
 use Elastica\Query\MatchAll;
 use Elastica\Filter\Term;
-use Elastica\Exception\NotFoundException;
 use Elastica\Search;
-use Doctrine\Common\Collections\ArrayCollection;
 use Elastica\Query;
 use Elastica\Query\Filtered;
 
@@ -179,14 +176,7 @@ class Client implements SearchClientInterface
     }
 
     /**
-     * Generate query used by findBy()
-     *
-     * @param array      $criteria
-     * @param array|null $orderBy
-     * @param int        $limit
-     * @param int        $offset
-     *
-     * @return Query
+     * {@inheritdoc}
      */
     public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
         $query = new Query();
@@ -213,13 +203,7 @@ class Client implements SearchClientInterface
     }
 
     /**
-     * Generate filter used by generateQueryBy()
-     *
-     * @param array $criteria
-     *
-     * @return BoolAnd
-     * @throws InvalidArgumentException
-     * @throws \Exception
+     * {@inheritdoc}
      */
     public function generateFilterBy(array $criteria) {
         $boolAndFilter = new BoolAnd();

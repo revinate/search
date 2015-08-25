@@ -20,6 +20,8 @@
 namespace Doctrine\Search;
 
 use Doctrine\Search\Mapping\ClassMetadata;
+use Elastica\Filter\BoolAnd;
+use InvalidArgumentException;
 
 /**
  * Interface for a Doctrine SearchManager class to implement.
@@ -144,6 +146,29 @@ interface SearchClientInterface
     public function removeAll(ClassMetadata $class, $query = null);
 
     /**
+     * Generate query used by findBy()
+     *
+     * @param array      $criteria
+     * @param array|null $orderBy
+     * @param int        $limit
+     * @param int        $offset
+     *
+     * @return Query
+     */
+    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null);
+
+    /**
+     * Generate filter used by generateQueryBy()
+     *
+     * @param array $criteria
+     *
+     * @return BoolAnd
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function generateFilterBy(array $criteria);
+
+        /**
      * Update the existing field mapping
      *
      * @param ClassMetadata $class
