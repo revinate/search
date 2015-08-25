@@ -59,7 +59,7 @@ class MappingManager {
         // Refresh all the mappings
         foreach ($metadatas as $metadata) {
             // if we're in the dev env, set the number of replica to be 0
-            if ($this->env == 'dev') {
+            if ($this->env == 'dev' || $this->env == 'test_local') {
                 $metadata->numberOfReplicas = 0;
             }
             // create the index if it doesn't exist yet
