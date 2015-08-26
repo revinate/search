@@ -36,7 +36,6 @@ interface SearchClientInterface
      * @param ClassMetadata $class
      * @param mixed $id
      * @param array $options
-     * @throws \Doctrine\Search\Exception\NoResultException
      */
     public function find(ClassMetadata $class, $id, $options = array());
 
@@ -46,7 +45,6 @@ interface SearchClientInterface
      * @param ClassMetadata $class
      * @param string $field
      * @param mixed $value
-     * @throws \Doctrine\Search\Exception\NoResultException
      */
     public function findOneBy(ClassMetadata $class, $field, $value);
 

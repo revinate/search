@@ -25,7 +25,6 @@ use Doctrine\Search\ElasticSearch\RevinateElastica\Template;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
-use Doctrine\Search\Exception\NoResultException;
 use Elastica\Client as ElasticaClient;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\HasChild;
@@ -169,7 +168,7 @@ class Client implements SearchClientInterface
 
         $results = $this->search($query, array($class));
         if (!$results->count()) {
-            throw new NoResultException();
+            return null;
         }
 
         return $results[0];
@@ -227,12 +226,7 @@ class Client implements SearchClientInterface
      */
     public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
         $query = $this->generateQueryBy($criteria, $orderBy, $limit, $offset);
-        $results = $this->search($query, array($class));
-        if (!$results->count()) {
-            throw new NoResultException();
-        }
-
-        return $results;
+        return $this->search($query, array($class));
     }
 
     /**
@@ -643,7 +637,7 @@ class Client implements SearchClientInterface
         try {
             $template = $elasticaTemplate->getTemplate($classMetadata->index);
         } catch (\Exception $e) {
-            throw new NoResultException();
+            return array();
         }
         return $template;
     }

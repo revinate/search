@@ -13,7 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class ElasticsearchEntityCollection extends ArrayCollection {
 
     /** @var integer */
-    private $total;
+    private $total = 0;
 
     /**
      * @return integer
