@@ -29,4 +29,13 @@ class ElasticsearchEntityCollection extends ArrayCollection {
         $this->total = $total;
     }
 
+    /**
+     * @return array
+     */
+    public function toEntitiesAndTotal() {
+        return array(
+            'entities' => $this->toArray(),
+            'total'    => $this->getTotal()
+        );
+    }
 }
