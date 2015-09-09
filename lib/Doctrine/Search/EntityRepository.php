@@ -152,12 +152,16 @@ class EntityRepository implements ObjectRepository
     }
 
     /**
-     * @param $entity
+     * @param BaseElasticsearchEntity $entity
+     * @param bool                    $refresh
      *
-     * @throws Exception\UnexpectedTypeException
+     * @throws \Exception
      */
-    public function save($entity) {
+    public function save($entity, $refresh = false) {
         $this->_sm->persist($entity);
         $this->_sm->flush($entity);
+        if ($refresh) {
+            $this->_sm->getClient()->refreshIndex($this->getClassMetadata()->getIndexForWrite($entity->toESDocument()));
+        }
     }
 }
