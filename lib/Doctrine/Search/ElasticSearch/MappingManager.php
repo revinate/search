@@ -4,6 +4,7 @@ namespace Doctrine\Search\ElasticSearch;
 
 use Doctrine\Search\Mapping\ClassMetadata;
 use Doctrine\Search\SearchManager;
+use Elastica\Exception\ResponseException;
 use Elastica\Index;
 use Elastica\Type;
 
@@ -98,7 +99,15 @@ class MappingManager {
         /** @var ClassMetadata[] $metadatas */
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
         foreach ($metadatas as $metadata) {
-            $this->client->deleteIndex($metadata->getIndexForRead());
+            try {
+                $this->client->deleteIndex($metadata->getIndexForRead());
+            } catch (ResponseException $e) {
+                if(strpos($e->getResponse()->getError(), 'IndexMissingException') === false) {
+                    // The original error from ES is not "IndexMissingException". We shouldn't swallow it.
+                    throw $e;
+                }
+                // The index has been deleted already, skip it.
+            }
         }
     }
 }
