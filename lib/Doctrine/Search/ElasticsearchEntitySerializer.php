@@ -87,8 +87,8 @@ class ElasticsearchEntitySerializer {
     /**
      * Helper method that get the value of a property from an entity
      *
-     * @param $entity
-     * @param $propertyName
+     * @param mixed $entity
+     * @param string $propertyName
      *
      * @return mixed
      * @throws \Exception
@@ -99,7 +99,25 @@ class ElasticsearchEntitySerializer {
         if (! is_callable(array($entity, $getter))) {
             throw new \Exception('Getter function is not callable: ' . $getter . ' for entity ' . get_class($entity));
         }
-      return $entity->$getter();
+        return $entity->$getter();
+    }
+
+    /**
+     * Helper method that
+     *
+     * @param mixed $entity
+     * @param string $propertyName
+     * @param mixed $value
+     *
+     * @throws \Exception
+     */
+    protected function setPropertyValueByName($entity, $propertyName, $value) {
+        $setter = 'set' . ucfirst($propertyName);
+        if (! is_callable(array($entity, $setter))) {
+            throw new \Exception('Setter function is not callable: ' . $setter . ' for entity ' . get_class($entity));
+        }
+
+        $entity->$setter($value);
     }
 
     /**
@@ -124,16 +142,11 @@ class ElasticsearchEntitySerializer {
 
         $properties = $this->getAllClassProperties($deserializingToEntity);
         foreach ($properties as $property) {
-            /** @var ElasticField $annotation */
-            $annotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
-            if ($annotation || $property->getName() == 'score') {
-                $setter = 'set' . ucfirst($property->name);
-                if (! is_callable(array($deserializingToEntity, $setter))) {
-                    throw new \Exception('Setter function is not callable: ' . $setter . ' for entity ' . get_class($deserializingToEntity));
-                }
-
+            /** @var ElasticField $elasticFieldAnnotation */
+            $elasticFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
+            if ($elasticFieldAnnotation || $property->getName() == 'score') {
                 $propertyValue = isset($esDocument[$property->name]) ? $esDocument[$property->name] : null;
-                switch ($annotation->type) {
+                switch ($elasticFieldAnnotation->type) {
                     // @todo[daiyi]: add more handler if necessary
                     case 'date':
                         if ($propertyValue) {
@@ -144,7 +157,13 @@ class ElasticsearchEntitySerializer {
                         break;
                 }
 
-                $deserializingToEntity->$setter($propertyValue);
+                $this->setPropertyValueByName($deserializingToEntity, $property->name, $propertyValue);
+            }
+
+            $versionFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->versionFieldAnnotationClass);
+            if ($versionFieldAnnotation) {
+                $propertyValue = isset($esDocument[$property->name]) ? $esDocument[$property->name] : null;
+                $this->setPropertyValueByName($deserializingToEntity, $property->name, $propertyValue);
             }
         }
 
