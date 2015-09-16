@@ -13,7 +13,10 @@ class ElasticsearchEntitySerializer {
     protected $reader;
 
     /** @var string */
-    protected $annotationClass = 'Doctrine\Search\Mapping\Annotations\ElasticField';
+    protected $elasticFieldAnnotationClass = 'Doctrine\Search\Mapping\Annotations\ElasticField';
+
+    /** @var string  */
+    protected $versionFieldAnnotationClass = 'Doctrine\Search\Mapping\Annotations\VersionField';
 
     /** @var ElasticsearchEntitySerializer */
     protected static $instance;
@@ -48,21 +51,15 @@ class ElasticsearchEntitySerializer {
 
         $properties = $this->getAllClassProperties($entity);
         foreach ($properties as $property) {
-            $annotation = $this->reader->getPropertyAnnotation($property, $this->annotationClass);
+            $elasticFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
 
-            if ($annotation) {
-                /** @var ElasticField $annotation */
-                $getter = 'get' . ucfirst($property->name);
-                if (! is_callable(array($entity, $getter))) {
-                    throw new \Exception('Getter function is not callable: ' . $getter . ' for entity ' . get_class($entity));
-                }
-
-                $propertyValue = $entity->$getter();
-                switch ($annotation->type) {
+            if ($elasticFieldAnnotation) {
+                $propertyValue = $this->getPropertyValueByName($entity, $property->name);
+                switch ($elasticFieldAnnotation->type) {
                     // @todo[daiyi]: add more handler if necessary
                     case 'date':
                         if ($propertyValue instanceof \DateTime) {
-                            switch ($annotation->format) {
+                            switch ($elasticFieldAnnotation->format) {
                                 case 'date':
                                     $propertyValue = $propertyValue->format('Y-m-d');
                                     break;
@@ -77,10 +74,32 @@ class ElasticsearchEntitySerializer {
                 }
 
                 $esDocument[$property->name] = $propertyValue;
+            }
 
+            $versionFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->versionFieldAnnotationClass);
+            if ($versionFieldAnnotation) {
+                $esDocument[$property->getName()] = $this->getPropertyValueByName($entity, $property->name);
             }
         }
         return $esDocument;
+    }
+
+    /**
+     * Helper method that get the value of a property from an entity
+     *
+     * @param $entity
+     * @param $propertyName
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function getPropertyValueByName($entity, $propertyName) {
+        /** @var ElasticField $elasticFieldAnnotation */
+        $getter = 'get' . ucfirst($propertyName);
+        if (! is_callable(array($entity, $getter))) {
+            throw new \Exception('Getter function is not callable: ' . $getter . ' for entity ' . get_class($entity));
+        }
+      return $entity->$getter();
     }
 
     /**
@@ -106,8 +125,8 @@ class ElasticsearchEntitySerializer {
         $properties = $this->getAllClassProperties($deserializingToEntity);
         foreach ($properties as $property) {
             /** @var ElasticField $annotation */
-            $annotation = $this->reader->getPropertyAnnotation($property, $this->annotationClass);
-            if ($annotation) {
+            $annotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
+            if ($annotation || $property->getName() == 'score') {
                 $setter = 'set' . ucfirst($property->name);
                 if (! is_callable(array($deserializingToEntity, $setter))) {
                     throw new \Exception('Setter function is not callable: ' . $setter . ' for entity ' . get_class($deserializingToEntity));

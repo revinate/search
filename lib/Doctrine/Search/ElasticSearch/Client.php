@@ -98,10 +98,14 @@ class Client implements SearchClientInterface
             }
 
             if ($versionField = $class->getVersionField()) {
-                if (empty($document[$versionField])) {
+                $version = isset($document[$versionField]) ? $document[$versionField] : null;
+                if (empty($version)) {
                     throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: '. $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the version');
                 }
                 $elasticaDoc->setVersionType($class->getVersionType());
+                $elasticaDoc->setVersion($version);
+                // unset the version field from the doc, so it won't get indexed 
+                unset($document[$versionField]);
             }
             $documentsByIndex[$class->getIndexForWrite($document)][] = $elasticaDoc;
         }
