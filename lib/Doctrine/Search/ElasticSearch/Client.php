@@ -25,8 +25,11 @@ use Doctrine\Search\ElasticSearch\RevinateElastica\Template;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
+use Doctrine\Search\SearchManager;
 use Elastica\Client as ElasticaClient;
+use Elastica\Filter\AbstractMulti;
 use Elastica\Filter\BoolAnd;
+use Elastica\Filter\BoolOr;
 use Elastica\Filter\HasChild;
 use Elastica\Filter\HasParent;
 use Elastica\Filter\Terms;
@@ -209,20 +212,50 @@ class Client implements SearchClientInterface
      * {@inheritdoc}
      */
     public function generateFilterBy(array $criteria) {
-        $boolAndFilter = new BoolAnd();
+        return $this->generateAndFilterBy($criteria);
+    }
+
+    /**
+     * @param array $criteria
+     *
+     * @return AbstractMulti
+     */
+    protected function generateAndFilterBy(array $criteria) {
+        return $this->generateFilterHelper(new BoolAnd(), $criteria);
+    }
+
+    /**
+     * @param array $criteria
+     *
+     * @return AbstractMulti
+     */
+    protected function generateOrFilterBy(array $criteria) {
+        return $this->generateFilterHelper(new BoolOr(), $criteria);
+    }
+
+    /**
+     * @param AbstractMulti $filter
+     * @param array         $criteria
+     *
+     * @return AbstractMulti
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    protected function generateFilterHelper($filter, $criteria) {
         foreach ($criteria as $key => $value) {
             if ($this->isHasChild($key) || $this->isHasParent($key)) {
-                $filter = $this->getFilterForHasParentOrHasChild($key, $value);
+                $filter->addFilter($this->getFilterForHasParentOrHasChild($key, $value));
+            } elseif ($key == SearchManager::CRITERIA_OR) {
+                $filter->addFilter($this->generateOrFilterBy($value));
             } elseif ($value instanceof Range) {
-                $filter = $this->getRangeFilter($key, $value);
+                $filter->addFilter($this->getRangeFilter($key, $value));
             } elseif ($value instanceof Not) {
-                $filter = $this->getNotFilter($key, $value);
+                $filter->addFilter($this->getNotFilter($key, $value));
             } else {
-                $filter = $this->getTermOrTermsFilter($key, $value);
+                $filter->addFilter($this->getTermOrTermsFilter($key, $value));
             }
-            $boolAndFilter->addFilter($filter);
         }
-        return $boolAndFilter;
+        return $filter;
     }
 
     /**

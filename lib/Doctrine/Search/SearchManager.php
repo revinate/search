@@ -20,9 +20,10 @@
 namespace Doctrine\Search;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Search\ElasticSearch\MappingManager;
+use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\Exception\UnexpectedTypeException;
 use Doctrine\Common\EventManager;
+use Elastica\Filter\BoolAnd;
 
 /**
  * Interface for a Doctrine SearchManager class to implement.
@@ -31,6 +32,8 @@ use Doctrine\Common\EventManager;
  */
 class SearchManager implements ObjectManager
 {
+    const CRITERIA_OR = 'or';
+
     /**
      * @var SearchClientInterface
      */
@@ -256,6 +259,33 @@ class SearchManager implements ObjectManager
     public function flush($object = null)
     {
         $this->unitOfWork->commit($object);
+    }
+
+    /**
+     * Generate query used by findBy()
+     *
+     * @param array      $criteria
+     * @param array|null $orderBy
+     * @param int        $limit
+     * @param int        $offset
+     *
+     * @return Query
+     */
+    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+        return $this->client->generateQueryBy($criteria, $orderBy, $limit, $offset);
+    }
+
+    /**
+     * Generate filter used by generateQueryBy()
+     *
+     * @param array $criteria
+     *
+     * @return BoolAnd
+     * @throws InvalidArgumentException
+     * @throws \Exception
+     */
+    public function generateFilterBy(array $criteria) {
+        return $this->client->generateFilterBy($criteria);
     }
 
     /**
