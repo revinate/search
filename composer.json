@@ -13,14 +13,16 @@
     ],
     "require": {
         "php": ">=5.3.2",
-        "doctrine/common": ">=2.3.0"
+        "doctrine/common": ">=2.3.0",
+        "phpoption/phpoption": ">=0.9"
     },
     "suggest": {
         "ruflin/Elastica": "Elastica version correlating to your ElasticSearch installation is required."
     },
     "require-dev": {
         "doctrine/orm": "~2.4",
-        "phpunit/phpunit": "~4.2"
+        "phpunit/phpunit": "~4.2",
+        "phpoption/phpoption": ">=0.9"
     },
     "autoload": {
         "psr-0": {

@@ -23,6 +23,7 @@ use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\Search\SearchManager;
 use Doctrine\Search\Mapping\ClassMetadata;
 use Doctrine\Search\Exception\DoctrineSearchException;
+use PhpOption\Option;
 
 class EntityRepository implements ObjectRepository
 {
@@ -57,6 +58,15 @@ class EntityRepository implements ObjectRepository
     public function find($id)
     {
         return $this->_sm->find($this->_entityName, $id);
+    }
+
+    /**
+     * @see EntityRepository::find
+     * @param $id
+     * @return Option
+     */
+    public function findOption($id) {
+        return Option::fromValue($this->find($id));
     }
 
     /**
@@ -99,6 +109,15 @@ class EntityRepository implements ObjectRepository
         $options = array('field' => key($criteria));
         $value = current($criteria);
         return $this->_sm->getUnitOfWork()->load($this->_class, $value, $options);
+    }
+
+    /**
+     * @see EntityRepository::findOneBy
+     * @param array $criteria
+     * @return Option
+     */
+    public function findOneOptionBy(array $criteria) {
+        return Option::fromValue($this->findOneBy($criteria));
     }
 
     /**

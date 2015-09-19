@@ -241,7 +241,10 @@ class UnitOfWork
             $document = $client->find($class, $value, $options);
         }
 
-        return $this->hydrateEntity($class, $document);
+        if ($document) {
+            return $this->hydrateEntity($class, $document);
+        }
+        return null;
     }
 
     /**
