@@ -61,10 +61,10 @@ class ElasticsearchEntitySerializer {
                         if ($propertyValue instanceof \DateTime) {
                             switch ($elasticFieldAnnotation->format) {
                                 case 'date':
-                                    $propertyValue = $propertyValue->format('Y-m-d');
+                                    $propertyValue = $propertyValue ? $propertyValue->format('Y-m-d') : null;
                                     break;
                                 default:
-                                    $propertyValue = $propertyValue->format('c');
+                                    $propertyValue = $propertyValue ? $propertyValue->format('c') : null;
                                     break;
                             }
                         }
@@ -151,7 +151,11 @@ class ElasticsearchEntitySerializer {
                         // @todo[daiyi]: add more handler if necessary
                         case 'date':
                             if ($propertyValue) {
-                                $propertyValue = new \DateTime($propertyValue);
+                                try {
+                                    $propertyValue = new \DateTime($propertyValue);
+                                } catch (\Exception $e) {
+                                    $propertyValue = null;
+                                }
                             }
                             break;
                         default:
