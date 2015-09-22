@@ -145,8 +145,8 @@ class UnitOfWork
 
         //TODO: single/array entity commit handling
         try {
-            $this->commitRemoved();
-            $this->commitPersisted();
+            $this->commitRemoved($entity);
+            $this->commitPersisted($entity);
         } catch (\Exception $e) {
             throw new DoctrineSearchException(__METHOD__ . ': Error while committing: ' . $e->getMessage());
         }
@@ -168,10 +168,18 @@ class UnitOfWork
 
     /**
      * Commit persisted entities to the database
+     *
+     * @param mixed $entity
+     *
+     * @throws \Exception
      */
-    private function commitPersisted()
+    private function commitPersisted($entity = null)
     {
-        $sortedDocuments = $this->sortObjects($this->scheduledForPersist);
+        $scheduledForPersist = $this->scheduledForPersist;
+        if ($entity) {
+            $scheduledForPersist = array($entity);
+        }
+        $sortedDocuments = $this->sortObjects($scheduledForPersist);
         $client = $this->sm->getClient();
 
         foreach ($sortedDocuments as $entityName => $documents) {
@@ -186,10 +194,18 @@ class UnitOfWork
 
     /**
      * Commit deleted entities to the database
+     *
+     * @param mixed $entity
+     *
+     * @throws \Exception
      */
-    private function commitRemoved()
+    private function commitRemoved($entity = null)
     {
-        $documents = $this->sortObjects($this->scheduledForDelete, false);
+        $scheduledForDelete = $this->scheduledForDelete;
+        if ($entity) {
+            $scheduledForDelete = array($entity);
+        }
+        $documents = $this->sortObjects($scheduledForDelete, false);
         $client = $this->sm->getClient();
 
         foreach ($documents as $entityName => $documents) {
@@ -332,6 +348,7 @@ class UnitOfWork
         }
 
         $data[$class->getIdentifier()] = $document->getId();
+        $data['score'] = $document->getScore();
 
         $entity = $this->sm->getSerializer()->deserialize($class->className, json_encode($data));
 

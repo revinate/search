@@ -146,15 +146,17 @@ class ElasticsearchEntitySerializer {
             $elasticFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
             if ($elasticFieldAnnotation || $property->getName() == 'score') {
                 $propertyValue = isset($esDocument[$property->name]) ? $esDocument[$property->name] : null;
-                switch ($elasticFieldAnnotation->type) {
-                    // @todo[daiyi]: add more handler if necessary
-                    case 'date':
-                        if ($propertyValue) {
-                            $propertyValue = new \DateTime($propertyValue);
-                        }
-                        break;
-                    default:
-                        break;
+                if ($elasticFieldAnnotation) {
+                    switch ($elasticFieldAnnotation->type) {
+                        // @todo[daiyi]: add more handler if necessary
+                        case 'date':
+                            if ($propertyValue) {
+                                $propertyValue = new \DateTime($propertyValue);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
                 $this->setPropertyValueByName($deserializingToEntity, $property->name, $propertyValue);

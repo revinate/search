@@ -296,6 +296,7 @@ class Client implements SearchClientInterface
      */
     public function search($query, array $classes)
     {
+        r_error_log(json_encode($query->toArray()));
         return $this->buildQuery($classes)->search($query);
     }
 
