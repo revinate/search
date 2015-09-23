@@ -135,9 +135,12 @@ class UnitOfWork
      * 1) All entity inserts
      * 2) All entity deletions
      *
-     * @param null|object|array $entity
+     * @param mixed     $entity
+     * @param bool      $refresh
+     *
+     * @throws DoctrineSearchException
      */
-    public function commit($entity = null)
+    public function commit($entity = null, $refresh = false)
     {
         if ($this->evm->hasListeners(Events::preFlush)) {
             $this->evm->dispatchEvent(Events::preFlush, new Event\PreFlushEventArgs($this->sm));
@@ -152,7 +155,7 @@ class UnitOfWork
         }
 
         //Force refresh of updated indexes
-        if ($entity === true) {
+        if ($refresh === true) {
             $client = $this->sm->getClient();
             foreach ($this->updatedIndexes as $index) {
                 $client->refreshIndex($index);
@@ -177,7 +180,13 @@ class UnitOfWork
     {
         $scheduledForPersist = $this->scheduledForPersist;
         if ($entity) {
-            $scheduledForPersist = array($entity);
+            // if entity is presented, we need for first make sure if the entity
+            // is in the scheduled for persist
+            if ($this->isInScheduledForPersist($entity)) {
+                $scheduledForPersist = array($entity);
+            } else {
+                return;
+            }
         }
         $sortedDocuments = $this->sortObjects($scheduledForPersist);
         $client = $this->sm->getClient();
@@ -189,6 +198,14 @@ class UnitOfWork
                 $this->updatedIndexes[$index] = $index;
             }
             $client->addDocuments($classMetadata, $documents);
+        }
+
+        // after the persisting, clear the scheduled for persist if to persist
+        // all, or remove the entity from the scheduled for persist if presented
+        if ($entity) {
+            unset($this->scheduledForPersist[spl_object_hash($entity)]);
+        } else {
+            $this->scheduledForPersist = array();
         }
     }
 
@@ -203,18 +220,30 @@ class UnitOfWork
     {
         $scheduledForDelete = $this->scheduledForDelete;
         if ($entity) {
-            $scheduledForDelete = array($entity);
+            // if entity is presented, we need for first make sure if the entity
+            // is in the scheduled for delete
+            if ($this->isInScheduledForDelete($entity)) {
+                $scheduledForDelete = array($entity);
+            } else {
+                return;
+            }
         }
-        $documents = $this->sortObjects($scheduledForDelete, false);
+        $sortedDocuments = $this->sortObjects($scheduledForDelete, false);
         $client = $this->sm->getClient();
 
-        foreach ($documents as $entityName => $documents) {
+        foreach ($sortedDocuments as $entityName => $documents) {
             $classMetadata = $this->sm->getClassMetadata($entityName);
             foreach ($documents as $document) {
                 $index = $classMetadata->getIndexForWrite($document);
                 $this->updatedIndexes[$index] = $index;
             }
             $client->removeDocuments($classMetadata, $documents);
+        }
+
+        if ($entity) {
+            unset($this->scheduledForDelete[spl_object_hash($entity)]);
+        } else {
+            $this->scheduledForDelete = array();
         }
     }
 
@@ -370,5 +399,29 @@ class UnitOfWork
     {
         $oid = spl_object_hash($entity);
         return isset($this->scheduledForPersist[$oid]) || isset($this->scheduledForDelete[$oid]);
+    }
+
+    /**
+     * Helper method to check if an entity is in scheduled for persist
+     *
+     * @param mixed $entity
+     *
+     * @return bool
+     */
+    public function isInScheduledForPersist($entity) {
+        $oid = spl_object_hash($entity);
+        return isset($this->scheduledForPersist[$oid]);
+    }
+
+    /**
+     * Helper method to check if an entity is in scheduled for delete
+     *
+     * @param mixed $entity
+     *
+     * @return bool
+     */
+    public function isInScheduledForDelete($entity) {
+        $oid = spl_object_hash($entity);
+        return isset($this->scheduledForDelete[$oid]);
     }
 }

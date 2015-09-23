@@ -6,7 +6,7 @@ use Elastica\Result;
 
 abstract class BaseElasticsearchEntity {
     /** @var string Index type (override in entity implementation) */
-    protected static $indexType = '';
+    const INDEX_TYPE = null;
 
     /**
      * Constructor
@@ -25,7 +25,7 @@ abstract class BaseElasticsearchEntity {
      * @return string
      */
     public static function getIndexType() {
-        return static::$indexType;
+        return static::INDEX_TYPE;
     }
 
 

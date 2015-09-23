@@ -255,10 +255,15 @@ class SearchManager implements ObjectManager
 
     /**
      * Commit all changes
+     *
+     * @param mixed $object
+     * @param bool $refresh
+     *
+     * @throws Exception\DoctrineSearchException
      */
-    public function flush($object = null)
+    public function flush($object = null, $refresh = false)
     {
-        $this->unitOfWork->commit($object);
+        $this->unitOfWork->commit($object, $refresh);
     }
 
     /**
