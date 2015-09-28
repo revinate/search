@@ -75,11 +75,6 @@ class ElasticsearchEntitySerializer {
 
                 $esDocument[$property->name] = $propertyValue;
             }
-
-            $versionFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->versionFieldAnnotationClass);
-            if ($versionFieldAnnotation) {
-                $esDocument[$property->getName()] = $this->getPropertyValueByName($entity, $property->name);
-            }
         }
         return $esDocument;
     }

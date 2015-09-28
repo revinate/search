@@ -107,8 +107,6 @@ class Client implements SearchClientInterface
                 }
                 $elasticaDoc->setVersionType($class->getVersionType());
                 $elasticaDoc->setVersion($version);
-                // unset the version field from the doc, so it won't get indexed 
-                unset($document[$versionField]);
             }
             $documentsByIndex[$class->getIndexForWrite($document)][] = $elasticaDoc;
         }
