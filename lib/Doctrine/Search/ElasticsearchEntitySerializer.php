@@ -2,15 +2,18 @@
 namespace Doctrine\Search;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\CachedReader;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\Mapping\Annotations\ElasticField;
 use Elastica\Result;
 
 
 class ElasticsearchEntitySerializer {
+    protected static $entityReflectionCaches = array();
 
     /** @var AnnotationReader */
-    protected $reader;
+    protected static $reader;
 
     /** @var string */
     protected $elasticFieldAnnotationClass = 'Doctrine\Search\Mapping\Annotations\ElasticField';
@@ -25,7 +28,9 @@ class ElasticsearchEntitySerializer {
      * Constructor
      */
     private function __construct() {
-        $this->reader = new AnnotationReader();
+        if (! self::$reader) {
+            self::$reader = new CachedReader(new AnnotationReader(), new ArrayCache());
+        }
     }
 
     /**
@@ -51,8 +56,7 @@ class ElasticsearchEntitySerializer {
 
         $properties = $this->getAllClassProperties($entity);
         foreach ($properties as $property) {
-            $elasticFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
-
+            $elasticFieldAnnotation = self::$reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
             if ($elasticFieldAnnotation) {
                 $propertyValue = $this->getPropertyValueByName($entity, $property->name);
                 switch ($elasticFieldAnnotation->type) {
@@ -138,7 +142,7 @@ class ElasticsearchEntitySerializer {
         $properties = $this->getAllClassProperties($deserializingToEntity);
         foreach ($properties as $property) {
             /** @var ElasticField $elasticFieldAnnotation */
-            $elasticFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
+            $elasticFieldAnnotation = self::$reader->getPropertyAnnotation($property, $this->elasticFieldAnnotationClass);
             if ($elasticFieldAnnotation || $property->getName() == 'score') {
                 $propertyValue = isset($esDocument[$property->name]) ? $esDocument[$property->name] : null;
                 if ($elasticFieldAnnotation) {
@@ -161,7 +165,7 @@ class ElasticsearchEntitySerializer {
                 $this->setPropertyValueByName($deserializingToEntity, $property->name, $propertyValue);
             }
 
-            $versionFieldAnnotation = $this->reader->getPropertyAnnotation($property, $this->versionFieldAnnotationClass);
+            $versionFieldAnnotation = self::$reader->getPropertyAnnotation($property, $this->versionFieldAnnotationClass);
             if ($versionFieldAnnotation) {
                 $propertyValue = isset($esDocument[$property->name]) ? $esDocument[$property->name] : null;
                 $this->setPropertyValueByName($deserializingToEntity, $property->name, $propertyValue);
