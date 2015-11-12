@@ -19,6 +19,8 @@
 
 namespace Doctrine\Search\ElasticSearch;
 
+use Doctrine\Search\Criteria\Exists;
+use Doctrine\Search\Criteria\Missing;
 use Doctrine\Search\Criteria\Not;
 use Doctrine\Search\Criteria\Range;
 use Doctrine\Search\ElasticSearch\RevinateElastica\Template;
@@ -249,6 +251,10 @@ class Client implements SearchClientInterface
                 $filter->addFilter($this->getRangeFilter($key, $value));
             } elseif ($value instanceof Not) {
                 $filter->addFilter($this->getNotFilter($key, $value));
+            } elseif ($value instanceof Exists) {
+                $filter->addFilter($this->getExistsFilter($key));
+            } elseif ($value instanceof Missing) {
+                $filter->addFilter($this->getMissingFilter($key, $value));
             } else {
                 $filter->addFilter($this->getTermOrTermsFilter($key, $value));
             }
@@ -345,6 +351,9 @@ class Client implements SearchClientInterface
         $mapping->disableSource($metadata->source);
         if (isset($metadata->boost)) {
             $mapping->setParam('_boost', array('name' => '_boost', 'null_value' => $metadata->boost));
+        }
+        if (isset($metadata->dynamic)) {
+            $mapping->setParam('dynamic', $metadata->dynamic);
         }
         if (isset($metadata->parent)) {
             $mapping->setParent($metadata->parent);
@@ -457,15 +466,18 @@ class Client implements SearchClientInterface
             $elasticaType = new Type($elasticaIndex, $classMetadata->type);
             $elasticaTypeMapping = new Mapping($elasticaType, $this->getMapping($classMetadata->fieldMappings));
             $elasticaTypeMapping->setParam('_id', array('path' => $classMetadata->getIdentifier()));
+            if ($classMetadata->parent) {
+                $elasticaTypeMapping->setParam('_parent', array('type' => $classMetadata->parent));
+            }
             if ($classMetadata->dynamic) {
                 $elasticaTypeMapping->setParam('dynamic', $classMetadata->dynamic);
             }
             $response = $elasticaType->setMapping($elasticaTypeMapping);
         } catch (\Exception $e) {
-            return false;
+            return $e->getMessage();
         }
 
-        return 200 == $response->getStatus();
+        return (200 == $response->getStatus()) ? true : $response->getError();
     }
 
     /**
@@ -562,6 +574,32 @@ class Client implements SearchClientInterface
      */
     protected function getNotFilter($field, Not $not) {
         return new \Elastica\Filter\BoolNot($this->getTermOrTermsFilter($field, $not->getValue()));
+    }
+
+    /**
+     * @param string $field
+     *
+     * @return \Elastica\Filter\Exists
+     */
+    protected function getExistsFilter($field) {
+        return new \Elastica\Filter\Exists($field);
+    }
+
+    /**
+     * @param string  $field
+     * @param Missing $missing
+     *
+     * @return \Elastica\Filter\Missing
+     */
+    protected function getMissingFilter($field, $missing) {
+        $filter = new \Elastica\Filter\Missing($field);
+        if (null !== $missing->getExistence()) {
+            $filter->setParam('existence', $missing->getExistence());
+        }
+        if (null !== $missing->getNullValue()) {
+            $filter->setParam('null_value', $missing->getNullValue());
+        }
+        return $filter;
     }
 
     /**

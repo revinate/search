@@ -171,7 +171,7 @@ interface SearchClientInterface
      *
      * @param ClassMetadata $class
      *
-     * @return boolean
+     * @return boolean|string
      */
     public function updateMapping(ClassMetadata $class);
 

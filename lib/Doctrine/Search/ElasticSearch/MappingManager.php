@@ -37,12 +37,10 @@ class MappingManager {
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
         $indexToMetadatas = array();
 
-        // Refresh the templates used for time series
+        // Refresh the templates
         /** @var ClassMetadata $metadata */
         foreach ($metadatas as $metadata) {
-            if ($metadata->timeSeriesScale) {
                 $indexToMetadatas[$metadata->index][] = $metadata;
-            }
         }
 
         if (! empty($indexToMetadatas)) {
@@ -63,6 +61,7 @@ class MappingManager {
             if ($this->env == 'dev' || $this->env == 'test_local') {
                 $metadata->numberOfReplicas = 0;
             }
+
             // create the index if it doesn't exist yet
             $indexName = $metadata->timeSeriesScale ? $metadata->getCurrentTimeSeriesIndex() : $metadata->index;
             /** @var Index $index */
@@ -70,14 +69,20 @@ class MappingManager {
             if (! $index->exists()) {
                 $this->client->createIndex($indexName, $metadata->getSettings());
             }
-            // create the type if it doesn't exist yet
-            $type = new Type($index, $metadata->type);
-            if (! $type->exists()) {
-                $this->client->createType($metadata);
-            }
 
-            // update the mapping
-            $this->client->updateMapping($metadata);
+            // create the type if it doesn't exist yet
+            if ($metadata->type) {
+                $type = new Type($index, $metadata->type);
+                if (! $type->exists()) {
+                    $this->client->createType($metadata);
+                }
+
+                // update the mapping
+                $result = $this->client->updateMapping($metadata);
+                if (true !== $result) {
+                    echo "Warning: Failed to update mapping for index '$indexName', type '$metadata->type'. Reason: $result\n";
+                }
+            }
         }
     }
 

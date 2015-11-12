@@ -145,7 +145,6 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     private function extractPropertiesAnnotations(array $reflProperties, ClassMetadata $metadata)
     {
-        $documentsFieldAnnotations = array();
         foreach ($reflProperties as $reflProperty) {
             foreach ($this->reader->getPropertyAnnotations($reflProperty) as $annotation) {
                 foreach ($this->entityFieldAnnotationClasses as $fieldAnnotationClass) {
@@ -193,7 +192,6 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     private function extractMethodsAnnotations(array $reflMethods, ClassMetadata $metadata)
     {
-        $documentsFieldAnnotations = array();
         foreach ($reflMethods as $reflMethod) {
             foreach ($this->reader->getMethodAnnotations($reflMethod) as $annotation) {
                 foreach ($this->entityFieldAnnotationClasses as $fieldAnnotationClass) {
