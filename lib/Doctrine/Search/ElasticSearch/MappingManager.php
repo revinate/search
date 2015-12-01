@@ -40,7 +40,9 @@ class MappingManager {
         // Refresh the templates
         /** @var ClassMetadata $metadata */
         foreach ($metadatas as $metadata) {
+            if ($metadata->index && $metadata->type) {
                 $indexToMetadatas[$metadata->index][] = $metadata;
+            }
         }
 
         if (! empty($indexToMetadatas)) {
