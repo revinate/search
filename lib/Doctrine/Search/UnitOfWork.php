@@ -23,7 +23,9 @@ use Doctrine\Search\SearchManager;
 use Doctrine\Search\Exception\DoctrineSearchException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Search\Mapping\ClassMetadata;
+use Elastica\Query;
 use Elastica\ResultSet;
+use Elastica\ScanAndScroll;
 use Traversable;
 
 class UnitOfWork
@@ -309,6 +311,19 @@ class UnitOfWork
     }
 
     /**
+     * @param ClassMetadata $class
+     * @param array         $criteria
+     * @param int           $sizePerShard
+     * @param string        $expiryTime
+     *
+     * @return \Generator
+     */
+    public function scanBy(ClassMetadata $class, array $criteria, $sizePerShard = 100, $expiryTime = '1m') {
+        $iterator = $this->sm->getClient()->scan($this->sm->generateQueryBy($criteria), [$class], $sizePerShard, $expiryTime);
+        return $this->hydrateScanAndScrollIterator([$class], $iterator);
+    }
+
+    /**
      * Load and hydrate a document collection
      *
      * @param array $classes
@@ -318,6 +333,18 @@ class UnitOfWork
     {
         $results = $this->sm->getClient()->search($query, $classes);
         return $this->hydrateCollection($classes, $results);
+    }
+
+    /**
+     * @param ClassMetadata[] $classes
+     * @param ScanAndScroll   $scanAndScrollIterator
+     *
+     * @return \Generator
+     */
+    public function hydrateScanAndScrollIterator($classes, ScanAndScroll $scanAndScrollIterator) {
+        foreach ($scanAndScrollIterator as $resultSet) {
+            yield $this->hydrateCollection($classes, $resultSet);
+        }
     }
 
     /**

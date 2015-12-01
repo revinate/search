@@ -212,6 +212,27 @@ class Query
     }
 
     /**
+     * @param int    $sizePerShard  Size of documents to be returned per shard
+     * @param string $expiryTime    Expiration time of the scroll
+     * @param string $hydrationMode Hydration mode, either self::HYDRATE_BYPASS or self::HYDRATE_INTERNAL
+     *
+     * @return \Generator|Elastica\ScanAndScroll
+     */
+    public function scan($sizePerShard = 100, $expiryTime = '1m', $hydrationMode = null) {
+        $classes = [];
+        foreach ($this->entityClasses as $entityClass) {
+            $classes[] = $this->sm->getClassMetadata($entityClass);
+        }
+
+        $scanAndScrollIterator = $this->getSearchManager()->getClient()->scan($this->query, $classes, $sizePerShard, $expiryTime);
+
+        if ($hydrationMode == self::HYDRATE_BYPASS) {
+            return $scanAndScrollIterator;
+        }
+        return $this->sm->getUnitOfWork()->hydrateScanAndScrollIterator($classes, $scanAndScrollIterator);
+    }
+
+    /**
      * Execute search and hydrate results if required.
      *
      * @param integer $hydrationMode

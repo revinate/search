@@ -35,6 +35,7 @@ use Elastica\Filter\BoolOr;
 use Elastica\Filter\HasChild;
 use Elastica\Filter\HasParent;
 use Elastica\Filter\Terms;
+use Elastica\ScanAndScroll;
 use Elastica\Type;
 use Elastica\Type\Mapping;
 use Elastica\Document;
@@ -278,6 +279,11 @@ class Client implements SearchClientInterface
         return $this->buildQuery($classes)->search();
     }
 
+    /**
+     * @param ClassMetadata[] $classes
+     *
+     * @return Search
+     */
     protected function buildQuery(array $classes)
     {
         $searchQuery = new Search($this->client);
@@ -301,6 +307,20 @@ class Client implements SearchClientInterface
     public function search($query, array $classes)
     {
         return $this->buildQuery($classes)->search($query);
+    }
+
+    /**
+     * @param Query            $query
+     * @param ClassMetadata[]  $classes
+     * @param int              $sizePerShard   Size of documents to be returned per shard
+     * @param string           $expiryTime     Expiration time of the scroll
+     *
+     * @return ScanAndScroll
+     */
+    public function scan(Query $query, array $classes, $sizePerShard = 100, $expiryTime = '1m') {
+        $elasticaSearch = $this->buildQuery($classes);
+        $elasticaSearch->setQuery($query);
+        return new ScanAndScroll($elasticaSearch, $expiryTime, $sizePerShard);
     }
 
     /**

@@ -20,6 +20,7 @@
 namespace Doctrine\Search;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Search\ElasticSearch\Client;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\Exception\UnexpectedTypeException;
 use Doctrine\Common\EventManager;
@@ -171,7 +172,7 @@ class SearchManager implements ObjectManager
     }
 
     /**
-     * @return SearchClientInterface
+     * @return Client
      */
     public function getClient()
     {
