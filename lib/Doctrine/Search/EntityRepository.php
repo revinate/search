@@ -99,6 +99,17 @@ class EntityRepository implements ObjectRepository
     }
 
     /**
+     * @param ClassMetadata[] $criteria
+     * @param int             $sizePerShard   Size of documents to be returned per shard
+     * @param string          $expiryTime     Expiration time of the scroll
+     *
+     * @return \Generator
+     */
+    public function scanBy(array $criteria, $sizePerShard = 100, $expiryTime = '1m') {
+        return $this->_sm->getUnitOfWork()->scanBy($this->_class, $criteria, $sizePerShard, $expiryTime);
+    }
+
+    /**
      * Finds a single object by a set of criteria.
      *
      * @param array $criteria
