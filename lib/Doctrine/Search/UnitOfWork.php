@@ -230,7 +230,7 @@ class UnitOfWork
                 return;
             }
         }
-        $sortedDocuments = $this->sortObjects($scheduledForDelete, false);
+        $sortedDocuments = $this->sortObjects($scheduledForDelete);
         $client = $this->sm->getClient();
 
         foreach ($sortedDocuments as $entityName => $documents) {

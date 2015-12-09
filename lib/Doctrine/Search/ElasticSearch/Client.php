@@ -134,10 +134,10 @@ class Client implements SearchClientInterface
         $idsByIndex = array();
 
         foreach ($documents as $document) {
-            if (!method_exists($document, "getId") || is_null($document->getId())) {
+            if (! isset($document['id'])) {
                 throw new \RuntimeException(__METHOD__ . ": Unable to remove document with no id");
             }
-            $idsByIndex[$class->getIndexForWrite($document)][] = $document->getId();
+            $idsByIndex[$class->getIndexForWrite($document)][] = $document['id'];
         }
 
         foreach ($idsByIndex as $index => $ids) {
