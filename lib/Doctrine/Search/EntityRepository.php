@@ -50,6 +50,19 @@ class EntityRepository implements ObjectRepository
     }
 
     /**
+     * Finds an object by its primary key / identifier using the realtime API
+     *
+     * @param mixed  $id      The identifier.
+     * @param string $index   The optional index to check, since wildcard is not supported for time series indices
+     * @param string $routing The optional routing parameter
+     *
+     * @return object The object.
+     */
+    public function get($id, $index = null, $routing = null) {
+        return $this->_sm->get($this->_entityName, $id, $index, $routing);
+    }
+
+    /**
      * Finds an object by its primary key / identifier.
      *
      * @param mixed $id The identifier.

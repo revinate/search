@@ -29,6 +29,7 @@ use Doctrine\Search\SearchClientInterface;
 use Doctrine\Search\Mapping\ClassMetadata;
 use Doctrine\Search\SearchManager;
 use Elastica\Client as ElasticaClient;
+use Elastica\Exception\NotFoundException;
 use Elastica\Filter\AbstractMulti;
 use Elastica\Filter\BoolAnd;
 use Elastica\Filter\BoolOr;
@@ -152,6 +153,22 @@ class Client implements SearchClientInterface
         $type = $this->getIndex($class->getIndexForRead())->getType($class->type);
         $query = $query ?: new MatchAll();
         $type->deleteByQuery($query);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function get(ClassMetadata $class, $id, $options = array(), $index = null) {
+        if (! $index) {
+            $index = $class->index;
+        }
+        $type = $this->getIndex($index)->getType($class->type);
+        try {
+            $document = $type->getDocument($id, $options);
+        } catch (NotFoundException $e) {
+            return null;
+        }
+        return $document;
     }
 
     /**

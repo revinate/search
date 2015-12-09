@@ -275,12 +275,15 @@ class UnitOfWork
      * @param ClassMetadata $class
      * @param mixed $value
      * @param array $options
+     * @param string $index
      */
-    public function load(ClassMetadata $class, $value, $options = array())
+    public function load(ClassMetadata $class, $value, $options = array(), $index = null)
     {
         $client = $this->sm->getClient();
 
-        if (isset($options['field'])) {
+        if (! empty($options['useRealtime'])) {
+            $document = $client->get($class, $value, $options, $index);
+        } elseif (isset($options['field'])) {
             $document = $client->findOneBy($class, $options['field'], $value);
         } else {
             $document = $client->find($class, $value, $options);
@@ -377,7 +380,9 @@ class UnitOfWork
         }
 
         $data[$class->getIdentifier()] = $document->getId();
-        $data['score'] = $document->getScore();
+        if (method_exists($document, 'getScore')) {
+            $data['score'] = $document->getScore();
+        }
 
         $entity = $this->sm->getSerializer()->deserialize($class->className, json_encode($data));
 

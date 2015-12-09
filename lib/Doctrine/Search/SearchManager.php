@@ -195,6 +195,23 @@ class SearchManager implements ObjectManager
     }
 
     /**
+     * @param string $entityName
+     * @param mixed  $id
+     * @param string $index
+     * @param string $routing
+     *
+     * @return object
+     */
+    public function get($entityName, $id, $index = null, $routing = null) {
+        $options = array('useRealtime' => true);
+        if ($routing) {
+            $options['routing'] = $routing;
+        }
+        $class = $this->getClassMetadata($entityName);
+        return $this->unitOfWork->load($class, $id, $options, $index);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function find($entityName, $id)

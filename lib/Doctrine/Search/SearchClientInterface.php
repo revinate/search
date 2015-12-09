@@ -31,6 +31,16 @@ use InvalidArgumentException;
 interface SearchClientInterface
 {
     /**
+     * Finds document by id using the realtime API
+     *
+     * @param ClassMetadata $class
+     * @param mixed $id
+     * @param array $options
+     * @param string $index
+     */
+    public function get(ClassMetadata $class, $id, $options = array(), $index = null);
+
+    /**
      * Finds document by id.
      *
      * @param ClassMetadata $class
