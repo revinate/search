@@ -65,10 +65,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
         'Doctrine\\Search\\Mapping\\Annotations\\ElasticField',
         'Doctrine\\Search\\Mapping\\Annotations\\ParentField',
         'Doctrine\\Search\\Mapping\\Annotations\\VersionField',
-        'Doctrine\\Search\\Mapping\\Annotations\\SolrField',
     );
-
-
 
     /**
      * @param string $className

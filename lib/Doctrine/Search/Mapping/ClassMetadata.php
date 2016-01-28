@@ -20,6 +20,7 @@
 namespace Doctrine\Search\Mapping;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata as ClassMetadataInterface;
+use Doctrine\Search\Exception\DoctrineSearchException;
 use Doctrine\Search\Mapping\Annotations\ElasticField;
 use Doctrine\Search\Mapping\Annotations\ElasticRoot;
 
@@ -264,7 +265,8 @@ class ClassMetadata implements ClassMetadataInterface
      *
      * @return string
      */
-    public function getTimeSeriesField() {
+    public function getTimeSeriesField()
+    {
         return $this->timeSeriesField;
     }
 
@@ -273,7 +275,8 @@ class ClassMetadata implements ClassMetadataInterface
      *
      * @param $timeSeriesField
      */
-    public function setTimeSeriesField($timeSeriesField) {
+    public function setTimeSeriesField($timeSeriesField)
+    {
         $this->timeSeriesField = $timeSeriesField;
     }
 
@@ -282,42 +285,48 @@ class ClassMetadata implements ClassMetadataInterface
      *
      * @return string
      */
-    public function getParentField() {
+    public function getParentField()
+    {
         return $this->parentField;
     }
 
     /**
      * @param $parentField
      */
-    public function setParentField($parentField) {
+    public function setParentField($parentField)
+    {
         $this->parentField = $parentField;
     }
 
     /**
      * @return string
      */
-    public function getVersionField() {
+    public function getVersionField()
+    {
         return $this->versionField;
     }
 
     /**
      * @param string $versionField
      */
-    public function setVersionField($versionField) {
+    public function setVersionField($versionField)
+    {
         $this->versionField = $versionField;
     }
 
     /**
      * @return string
      */
-    public function getVersionType() {
+    public function getVersionType()
+    {
         return $this->versionType;
     }
 
     /**
      * @param string $versionType
      */
-    public function setVersionType($versionType) {
+    public function setVersionType($versionType)
+    {
         $this->versionType = $versionType;
     }
 
@@ -328,7 +337,8 @@ class ClassMetadata implements ClassMetadataInterface
      *
      * @return bool
      */
-    public function isTimeSeriesField($fieldName) {
+    public function isTimeSeriesField($fieldName)
+    {
         return $this->timeSeriesField === $fieldName;
     }
 
@@ -367,7 +377,7 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * This mapping is used in the _wakeup-method to set the reflFields after _sleep.
      *
-     * @param \ReflectionProperty $field
+     * @param \Reflector $field
      * @param array $mapping
      */
     public function addFieldMapping(\Reflector $field, $mapping = array())
@@ -387,7 +397,7 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * This mapping is used in the _wakeup-method to set the parameters after _sleep.
      *
-     * @param \ReflectionProperty $field
+     * @param \Reflector $field
      * @param array $mapping
      */
     public function addParameterMapping(\Reflector $field, $mapping = array())
@@ -555,7 +565,8 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * @return string
      */
-    public function getIndexForRead() {
+    public function getIndexForRead()
+    {
         $indexName = $this->index;
         if ($this->timeSeriesScale) {
             $indexName .= '_*';
@@ -569,11 +580,12 @@ class ClassMetadata implements ClassMetadataInterface
      * @return string
      * @throws \Exception
      */
-    public function getIndexForWrite($document) {
+    public function getIndexForWrite($document)
+    {
         $indexName = $this->index;
         if ($this->timeSeriesScale) {
             if (!isset($document[$this->getTimeSeriesField()])) {
-                throw new \Exception(__METHOD__ . ': TimeSeriesField must be defined for a time series index!');
+                throw new DoctrineSearchException(__METHOD__ . ': TimeSeriesField must be defined for a time series index!');
             }
             $indexName .= $this->getTimeSeriesSuffix($document[$this->getTimeSeriesField()]);
         }
@@ -583,7 +595,8 @@ class ClassMetadata implements ClassMetadataInterface
     /**
      * @return string
      */
-    public function getCurrentTimeSeriesIndex() {
+    public function getCurrentTimeSeriesIndex()
+    {
         return $this->index . $this->getTimeSeriesSuffix(date('c'));
     }
 
@@ -593,7 +606,8 @@ class ClassMetadata implements ClassMetadataInterface
      * @return string
      * @throws \Exception
      */
-    protected function getTimeSeriesSuffix($isoDateTime) {
+    protected function getTimeSeriesSuffix($isoDateTime)
+    {
         $datetime = new \DateTime($isoDateTime);
         switch ($this->timeSeriesScale) {
             case self::TIME_SERIES_YEARLY:
@@ -601,14 +615,15 @@ class ClassMetadata implements ClassMetadataInterface
             case self::TIME_SERIES_MONTHLY:
                 return '_' . $datetime->format('Y') . '_' . $datetime->format('m');
             default:
-                throw new \Exception(__METHOD__ . ': Invalid time series scale! Must be set to ' . self::TIME_SERIES_YEARLY . ' or ' . self::TIME_SERIES_MONTHLY);
+                throw new DoctrineSearchException(__METHOD__ . ': Invalid time series scale! Must be set to ' . self::TIME_SERIES_YEARLY . ' or ' . self::TIME_SERIES_MONTHLY);
         }
     }
 
     /**
      * @return array
      */
-    public function getSettings() {
+    public function getSettings()
+    {
         return array(
             'index.number_of_replicas' => $this->numberOfReplicas,
             'index.number_of_shards' => $this->numberOfShards

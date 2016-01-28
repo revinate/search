@@ -20,8 +20,8 @@
 namespace Doctrine\Search\Event;
 
 use Doctrine\Common\EventArgs;
-use Doctrine\Search\SearchManager;
 use Doctrine\Search\Mapping\ClassMetadata;
+use Doctrine\Search\SearchManager;
 
 /**
  * Class that holds event arguments for a loadMetadata event.
@@ -33,20 +33,20 @@ use Doctrine\Search\Mapping\ClassMetadata;
 class LoadClassMetadataEventArgs extends EventArgs
 {
     /**
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $sm;
 
     /**
-     * @var \Doctrine\Search\Mapping\ClassMetadata
+     * @var ClassMetadata
      */
     private $classMetadata;
 
     /**
      * Constructor.
      *
-     * @param \Doctrine\Search\Mapping\ClassMetadata $classMetadata
-     * @param \Doctrine\Search\EntityManager $sm
+     * @param ClassMetadata $classMetadata
+     * @param SearchManager $sm
      */
     public function __construct(ClassMetadata $classMetadata, SearchManager $sm)
     {
@@ -57,7 +57,7 @@ class LoadClassMetadataEventArgs extends EventArgs
     /**
      * Retrieve associated ClassMetadata.
      *
-     * @return \Doctrine\Search\Mapping\ClassMetadata
+     * @return ClassMetadata
      */
     public function getClassMetadata()
     {
@@ -67,7 +67,7 @@ class LoadClassMetadataEventArgs extends EventArgs
     /**
      * Retrieve associated SearchManager.
      *
-     * @return \Doctrine\Search\SearchManager
+     * @return SearchManager
      */
     public function getSearchManager()
     {

@@ -102,6 +102,8 @@ class Query
      *
      * @param string $method
      * @param array $arguments
+     * @return $this
+     * @throws DoctrineSearchException
      */
     public function __call($method, $arguments)
     {
@@ -117,6 +119,7 @@ class Query
      * Specifies the searchable entity class to search against.
      *
      * @param mixed $entityClasses
+     * @return $this
      */
     public function from($entityClasses)
     {
@@ -128,6 +131,7 @@ class Query
      * Set the query object to be executed on the search engine
      *
      * @param mixed $query
+     * @return $this
      */
     public function searchWith($query)
     {
@@ -145,6 +149,7 @@ class Query
      * or bypass and return search result directly from the client
      *
      * @param integer $mode
+     * @return $this
      */
     public function setHydrationMode($mode)
     {
@@ -158,6 +163,7 @@ class Query
      *
      * @param boolean $useCache
      * @param integer $cacheLifetime
+     * @return $this
      */
     public function useResultCache($useCache, $cacheLifetime = null)
     {
@@ -191,6 +197,7 @@ class Query
      *
      * @param object $hydrationQuery
      * @param string $parameter
+     * @return $this
      */
     public function hydrateWith($hydrationQuery, $parameter = null)
     {
@@ -212,13 +219,14 @@ class Query
     }
 
     /**
-     * @param int    $sizePerShard  Size of documents to be returned per shard
-     * @param string $expiryTime    Expiration time of the scroll
+     * @param int $sizePerShard Size of documents to be returned per shard
+     * @param string $expiryTime Expiration time of the scroll
      * @param string $hydrationMode Hydration mode, either self::HYDRATE_BYPASS or self::HYDRATE_INTERNAL
      *
      * @return \Generator|Elastica\ScanAndScroll
      */
-    public function scan($sizePerShard = 100, $expiryTime = '1m', $hydrationMode = null) {
+    public function scan($sizePerShard = 100, $expiryTime = '1m', $hydrationMode = null)
+    {
         $classes = [];
         foreach ($this->entityClasses as $entityClass) {
             $classes[] = $this->sm->getClassMetadata($entityClass);

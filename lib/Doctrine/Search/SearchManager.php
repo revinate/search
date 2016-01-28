@@ -85,9 +85,9 @@ class SearchManager implements ObjectManager
     /**
      * Constructor
      *
-     * @param Configuration         $config
+     * @param Configuration $config
      * @param SearchClientInterface $client
-     * @param EventManager          $eventManager
+     * @param EventManager $eventManager
      */
     public function __construct(Configuration $config, SearchClientInterface $client, EventManager $eventManager)
     {
@@ -198,13 +198,14 @@ class SearchManager implements ObjectManager
 
     /**
      * @param string $entityName
-     * @param mixed  $id
+     * @param mixed $id
      * @param string $index
      * @param string $routing
      *
      * @return object
      */
-    public function get($entityName, $id, $index = null, $routing = null) {
+    public function get($entityName, $id, $index = null, $routing = null)
+    {
         $options = array('useRealtime' => true);
         if ($routing) {
             $options['routing'] = $routing;
@@ -288,14 +289,15 @@ class SearchManager implements ObjectManager
     /**
      * Generate query used by findBy()
      *
-     * @param array      $criteria
+     * @param array $criteria
      * @param array|null $orderBy
-     * @param int        $limit
-     * @param int        $offset
+     * @param int $limit
+     * @param int $offset
      *
      * @return Query
      */
-    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
         return $this->client->generateQueryBy($criteria, $orderBy, $limit, $offset);
     }
 
@@ -308,7 +310,8 @@ class SearchManager implements ObjectManager
      * @throws InvalidArgumentException
      * @throws \Exception
      */
-    public function generateFilterBy(array $criteria) {
+    public function generateFilterBy(array $criteria)
+    {
         return $this->client->generateFilterBy($criteria);
     }
 

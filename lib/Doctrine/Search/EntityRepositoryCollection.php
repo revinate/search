@@ -62,8 +62,8 @@ class EntityRepositoryCollection implements ObjectRepository
 
     /**
      * Finds all objects in the repository.
-     *
      * @return mixed The objects.
+     * @throws DoctrineSearchException
      */
     public function findAll()
     {
@@ -77,7 +77,6 @@ class EntityRepositoryCollection implements ObjectRepository
      * an UnexpectedValueException if certain values of the sorting or limiting details are
      * not supported.
      *
-     * @throws \UnexpectedValueException
      * @param array $criteria
      * @param array|null $orderBy
      * @param int|null $limit
@@ -104,6 +103,7 @@ class EntityRepositoryCollection implements ObjectRepository
      * Execute a direct search query on the associated index and type
      *
      * @param object $query
+     * @return array|\Doctrine\Common\Collections\ArrayCollection|ElasticsearchEntityCollection
      */
     public function search($query)
     {

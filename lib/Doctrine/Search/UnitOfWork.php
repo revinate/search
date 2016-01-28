@@ -19,10 +19,11 @@
 
 namespace Doctrine\Search;
 
-use Doctrine\Search\SearchManager;
+use Doctrine\Common\EventManager;
 use Doctrine\Search\Exception\DoctrineSearchException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Search\Mapping\ClassMetadata;
+use Doctrine\Search\SearchManager;
 use Elastica\Query;
 use Elastica\ResultSet;
 use Elastica\ScanAndScroll;
@@ -33,14 +34,14 @@ class UnitOfWork
     /**
      * The SearchManager that "owns" this UnitOfWork instance.
      *
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $sm;
 
     /**
      * The EventManager used for dispatching events.
      *
-     * @var \Doctrine\Common\EventManager
+     * @var EventManager
      */
     private $evm;
 
@@ -137,8 +138,8 @@ class UnitOfWork
      * 1) All entity inserts
      * 2) All entity deletions
      *
-     * @param mixed     $entity
-     * @param bool      $refresh
+     * @param mixed $entity
+     * @param bool $refresh
      *
      * @throws DoctrineSearchException
      */
@@ -283,7 +284,7 @@ class UnitOfWork
     {
         $client = $this->sm->getClient();
 
-        if (! empty($options['useRealtime'])) {
+        if (!empty($options['useRealtime'])) {
             $document = $client->get($class, $value, $options, $index);
         } elseif (isset($options['field'])) {
             $document = $client->findOneBy($class, $options['field'], $value);
@@ -301,27 +302,29 @@ class UnitOfWork
      * Load and hydrate documents based on critera
      *
      * @param ClassMetadata $class
-     * @param array         $criteria
-     * @param array|null    $orderBy
-     * @param int           $limit
-     * @param int           $offset
+     * @param array $criteria
+     * @param array|null $orderBy
+     * @param int $limit
+     * @param int $offset
      *
      * @return ArrayCollection
      */
-    public function loadBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function loadBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
         $results = $this->sm->getClient()->findBy($class, $criteria, $orderBy, $limit, $offset);
         return $this->hydrateCollection(array($class), $results);
     }
 
     /**
      * @param ClassMetadata $class
-     * @param array         $criteria
-     * @param int           $sizePerShard
-     * @param string        $expiryTime
+     * @param array $criteria
+     * @param int $sizePerShard
+     * @param string $expiryTime
      *
      * @return \Generator
      */
-    public function scanBy(ClassMetadata $class, array $criteria, $sizePerShard = 100, $expiryTime = '1m') {
+    public function scanBy(ClassMetadata $class, array $criteria, $sizePerShard = 100, $expiryTime = '1m')
+    {
         $iterator = $this->sm->getClient()->scan($this->sm->generateQueryBy($criteria), [$class], $sizePerShard, $expiryTime);
         return $this->hydrateScanAndScrollIterator([$class], $iterator);
     }
@@ -340,11 +343,12 @@ class UnitOfWork
 
     /**
      * @param ClassMetadata[] $classes
-     * @param ScanAndScroll   $scanAndScrollIterator
+     * @param ScanAndScroll $scanAndScrollIterator
      *
      * @return \Generator
      */
-    public function hydrateScanAndScrollIterator($classes, ScanAndScroll $scanAndScrollIterator) {
+    public function hydrateScanAndScrollIterator($classes, ScanAndScroll $scanAndScrollIterator)
+    {
         foreach ($scanAndScrollIterator as $resultSet) {
             yield $this->hydrateCollection($classes, $resultSet);
         }
@@ -440,7 +444,8 @@ class UnitOfWork
      *
      * @return bool
      */
-    public function isInScheduledForPersist($entity) {
+    public function isInScheduledForPersist($entity)
+    {
         $oid = spl_object_hash($entity);
         return isset($this->scheduledForPersist[$oid]);
     }
@@ -452,7 +457,8 @@ class UnitOfWork
      *
      * @return bool
      */
-    public function isInScheduledForDelete($entity) {
+    public function isInScheduledForDelete($entity)
+    {
         $oid = spl_object_hash($entity);
         return isset($this->scheduledForDelete[$oid]);
     }

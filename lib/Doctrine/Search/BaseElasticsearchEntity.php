@@ -4,7 +4,8 @@ namespace Doctrine\Search;
 
 use Elastica\Result;
 
-abstract class BaseElasticsearchEntity {
+abstract class BaseElasticsearchEntity
+{
     /** @var string Index type (override in entity implementation) */
     const INDEX_TYPE = null;
     /** @var string Full class name (override in entity implementation) */
@@ -15,7 +16,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @param array|Result $esDocument If null, creates a new object else populates given data into the object
      */
-    public function __construct($esDocument = null) {
+    public function __construct($esDocument = null)
+    {
         if ($esDocument) {
             $this->fromESDocument($esDocument);
         }
@@ -26,7 +28,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @return string
      */
-    public static function getIndexType() {
+    public static function getIndexType()
+    {
         return static::INDEX_TYPE;
     }
 
@@ -35,7 +38,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @return string
      */
-    public static function getClassName() {
+    public static function getClassName()
+    {
         return static::CLASS_NAME;
     }
 
@@ -46,7 +50,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @return static
      */
-    public static function createFromESDocument($doc) {
+    public static function createFromESDocument($doc)
+    {
         return new static($doc);
     }
 
@@ -55,7 +60,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @return array
      */
-    public function toESDocument() {
+    public function toESDocument()
+    {
         $serializer = static::getSerializer();
         return $serializer->serialize($this);
     }
@@ -66,7 +72,8 @@ abstract class BaseElasticsearchEntity {
      * @param $doc
      * @return BaseElasticsearchEntity
      */
-    public function fromESDocument($doc) {
+    public function fromESDocument($doc)
+    {
         $serializer = static::getSerializer();
         return $serializer->deserialize($doc, $this);
     }
@@ -76,7 +83,8 @@ abstract class BaseElasticsearchEntity {
      *
      * @return ElasticsearchEntitySerializer
      */
-    protected static function getSerializer() {
+    protected static function getSerializer()
+    {
         return ElasticsearchEntitySerializer::getInstance();
     }
 }

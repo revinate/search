@@ -100,7 +100,7 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
     {
         $fullClassName = '';
         $namespaces = $this->config->getEntityNamespaces();
-        if (! empty($namespaces[$namespaceAlias])) {
+        if (!empty($namespaces[$namespaceAlias])) {
             $fullClassName = ($namespaces[$namespaceAlias] . '\\Entity\\' . $simpleClassName);
         }
 
@@ -123,8 +123,7 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      * @param ClassMetadataInterface|ClassMetadata $class
      * @param ClassMetadataInterface|ClassMetadata $parent
      * @param bool $rootEntityFound
-     *
-     * @return void
+     * @param array $nonSuperclassParents
      */
     protected function doLoadMetadata($class, $parent, $rootEntityFound, array $nonSuperclassParents)
     {

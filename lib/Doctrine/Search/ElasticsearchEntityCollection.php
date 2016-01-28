@@ -10,7 +10,8 @@ use Doctrine\Common\Collections\ArrayCollection;
  *
  * @package Doctrine\Search
  */
-class ElasticsearchEntityCollection extends ArrayCollection {
+class ElasticsearchEntityCollection extends ArrayCollection
+{
 
     /** @var integer */
     private $total = 0;
@@ -18,24 +19,27 @@ class ElasticsearchEntityCollection extends ArrayCollection {
     /**
      * @return integer
      */
-    public function getTotal() {
+    public function getTotal()
+    {
         return $this->total;
     }
 
     /**
      * @param integer $total
      */
-    public function setTotal($total) {
+    public function setTotal($total)
+    {
         $this->total = $total;
     }
 
     /**
      * @return array
      */
-    public function toEntitiesAndTotal() {
+    public function toEntitiesAndTotal()
+    {
         return array(
             'entities' => $this->toArray(),
-            'total'    => $this->getTotal()
+            'total' => $this->getTotal()
         );
     }
 }

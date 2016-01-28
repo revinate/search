@@ -2,5 +2,6 @@
 
 namespace Doctrine\Search\Criteria;
 
-class Exists {
+class Exists
+{
 }

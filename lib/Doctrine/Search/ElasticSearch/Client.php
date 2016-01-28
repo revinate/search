@@ -32,6 +32,7 @@ use Elastica\Client as ElasticaClient;
 use Elastica\Exception\NotFoundException;
 use Elastica\Filter\AbstractMulti;
 use Elastica\Filter\BoolAnd;
+use Elastica\Filter\BoolNot;
 use Elastica\Filter\BoolOr;
 use Elastica\Filter\HasChild;
 use Elastica\Filter\HasParent;
@@ -99,7 +100,7 @@ class Client implements SearchClientInterface
             $elasticaDoc->setData($document);
             if ($parentField = $class->getParentField()) {
                 if (empty($document[$parentField])) {
-                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: '. $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the parent');
+                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: ' . $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the parent');
                 }
                 $elasticaDoc->setParent($document[$parentField]);
             }
@@ -107,7 +108,7 @@ class Client implements SearchClientInterface
             if ($versionField = $class->getVersionField()) {
                 $version = isset($document[$versionField]) ? $document[$versionField] : null;
                 if (empty($version)) {
-                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: '. $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the version');
+                    throw new InvalidArgumentException('Document (index: ' . $elasticaDoc->getIndex() . ' type: ' . $elasticaDoc->getType() . ' id: ' . $document['id'] . ') misses the value for the version');
                 }
                 $elasticaDoc->setVersionType($class->getVersionType());
                 $elasticaDoc->setVersion($version);
@@ -134,7 +135,7 @@ class Client implements SearchClientInterface
         $idsByIndex = array();
 
         foreach ($documents as $document) {
-            if (! isset($document['id'])) {
+            if (!isset($document['id'])) {
                 throw new \RuntimeException(__METHOD__ . ": Unable to remove document with no id");
             }
             $idsByIndex[$class->getIndexForWrite($document)][] = $document['id'];
@@ -159,8 +160,9 @@ class Client implements SearchClientInterface
     /**
      * {@inheritDoc}
      */
-    public function get(ClassMetadata $class, $id, $options = array(), $index = null) {
-        if (! $index) {
+    public function get(ClassMetadata $class, $id, $options = array(), $index = null)
+    {
+        if (!$index) {
             $index = $class->index;
         }
         $type = $this->getIndex($index)->getType($class->type);
@@ -202,7 +204,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function generateQueryBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
         $query = new Query();
 
         if (empty($criteria)) {
@@ -229,7 +232,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function generateFilterBy(array $criteria) {
+    public function generateFilterBy(array $criteria)
+    {
         return $this->generateAndFilterBy($criteria);
     }
 
@@ -238,7 +242,8 @@ class Client implements SearchClientInterface
      *
      * @return AbstractMulti
      */
-    protected function generateAndFilterBy(array $criteria) {
+    protected function generateAndFilterBy(array $criteria)
+    {
         return $this->generateFilterHelper(new BoolAnd(), $criteria);
     }
 
@@ -247,19 +252,21 @@ class Client implements SearchClientInterface
      *
      * @return AbstractMulti
      */
-    protected function generateOrFilterBy(array $criteria) {
+    protected function generateOrFilterBy(array $criteria)
+    {
         return $this->generateFilterHelper(new BoolOr(), $criteria);
     }
 
     /**
      * @param AbstractMulti $filter
-     * @param array         $criteria
+     * @param array $criteria
      *
      * @return AbstractMulti
      * @throws InvalidArgumentException
      * @throws \Exception
      */
-    protected function generateFilterHelper($filter, $criteria) {
+    protected function generateFilterHelper($filter, $criteria)
+    {
         foreach ($criteria as $key => $value) {
             if ($this->isHasChild($key) || $this->isHasParent($key)) {
                 $filter->addFilter($this->getFilterForHasParentOrHasChild($key, $value));
@@ -285,7 +292,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritDoc}
      */
-    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null) {
+    public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    {
         $query = $this->generateQueryBy($criteria, $orderBy, $limit, $offset);
         return $this->search($query, array($class));
     }
@@ -329,14 +337,15 @@ class Client implements SearchClientInterface
     }
 
     /**
-     * @param Query            $query
-     * @param ClassMetadata[]  $classes
-     * @param int              $sizePerShard   Size of documents to be returned per shard
-     * @param string           $expiryTime     Expiration time of the scroll
+     * @param Query $query
+     * @param ClassMetadata[] $classes
+     * @param int $sizePerShard Size of documents to be returned per shard
+     * @param string $expiryTime Expiration time of the scroll
      *
      * @return ScanAndScroll
      */
-    public function scan(Query $query, array $classes, $sizePerShard = 100, $expiryTime = '1m') {
+    public function scan(Query $query, array $classes, $sizePerShard = 100, $expiryTime = '1m')
+    {
         $elasticaSearch = $this->buildQuery($classes);
         $elasticaSearch->setQuery($query);
         return new ScanAndScroll($elasticaSearch, $expiryTime, $sizePerShard);
@@ -420,6 +429,7 @@ class Client implements SearchClientInterface
      * Generates property mapping from entity annotations
      *
      * @param array $mappings
+     * @return array
      */
     protected function getMapping($mappings)
     {
@@ -499,7 +509,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function updateMapping(ClassMetadata $classMetadata) {
+    public function updateMapping(ClassMetadata $classMetadata)
+    {
         try {
             $elasticaIndex = new Index($this->client, $classMetadata->getIndexForRead());
             $elasticaType = new Type($elasticaIndex, $classMetadata->type);
@@ -523,6 +534,7 @@ class Client implements SearchClientInterface
      * Generates parameter mapping from entity annotations
      *
      * @param array $paramMapping
+     * @return array
      */
     protected function getParameters($paramMapping)
     {
@@ -538,6 +550,7 @@ class Client implements SearchClientInterface
      * Generates root mapping from entity annotations
      *
      * @param array $mappings
+     * @return array
      */
     protected function getRootMapping($mappings)
     {
@@ -591,11 +604,12 @@ class Client implements SearchClientInterface
 
     /**
      * @param string $field
-     * @param Range  $range
+     * @param Range $range
      *
      * @return \Elastica\Filter\Range
      */
-    protected function getRangeFilter($field, Range $range) {
+    protected function getRangeFilter($field, Range $range)
+    {
         $rangeArray = array();
         $rangeArray[$range->getComparator1()] = $range->getValue1();
 
@@ -607,12 +621,13 @@ class Client implements SearchClientInterface
 
     /**
      * @param string $field
-     * @param Not    $not
+     * @param Not $not
      *
-     * @return \Elastica\Filter\BoolNot
+     * @return BoolNot
      */
-    protected function getNotFilter($field, Not $not) {
-        return new \Elastica\Filter\BoolNot($this->getTermOrTermsFilter($field, $not->getValue()));
+    protected function getNotFilter($field, Not $not)
+    {
+        return new BoolNot($this->getTermOrTermsFilter($field, $not->getValue()));
     }
 
     /**
@@ -620,17 +635,19 @@ class Client implements SearchClientInterface
      *
      * @return \Elastica\Filter\Exists
      */
-    protected function getExistsFilter($field) {
+    protected function getExistsFilter($field)
+    {
         return new \Elastica\Filter\Exists($field);
     }
 
     /**
-     * @param string  $field
+     * @param string $field
      * @param Missing $missing
      *
      * @return \Elastica\Filter\Missing
      */
-    protected function getMissingFilter($field, $missing) {
+    protected function getMissingFilter($field, $missing)
+    {
         $filter = new \Elastica\Filter\Missing($field);
         if (null !== $missing->getExistence()) {
             $filter->setParam('existence', $missing->getExistence());
@@ -646,7 +663,8 @@ class Client implements SearchClientInterface
      *
      * @return bool
      */
-    protected function isHasParent($key) {
+    protected function isHasParent($key)
+    {
         return $this->startsWith($key, '_parent.');
     }
 
@@ -655,7 +673,8 @@ class Client implements SearchClientInterface
      *
      * @return bool
      */
-    protected function isHasChild($key) {
+    protected function isHasChild($key)
+    {
         return $this->startsWith($key, '_child.');
     }
 
@@ -665,7 +684,8 @@ class Client implements SearchClientInterface
      *
      * @return bool
      */
-    protected function startsWith($haystack, $needle){
+    protected function startsWith($haystack, $needle)
+    {
         return strpos($haystack, $needle) === 0;
     }
 
@@ -678,7 +698,8 @@ class Client implements SearchClientInterface
      * @return HasChild|HasParent
      * @throws \Exception
      */
-    protected function getFilterForHasParentOrHasChild($key, $value) {
+    protected function getFilterForHasParentOrHasChild($key, $value)
+    {
         $parts = explode('.', $key);
         if (3 != count($parts) && 2 != count($parts)) {
             throw new InvalidArgumentException(__METHOD__ . ': Find by child or parent must be of the form "_child.type[.field]" or "_parent.type[.field]"');
@@ -707,11 +728,12 @@ class Client implements SearchClientInterface
 
     /**
      * @param string $field
-     * @param mixed  $value
+     * @param mixed $value
      *
      * @return Term|Terms
      */
-    protected function getTermOrTermsFilter($field, $value) {
+    protected function getTermOrTermsFilter($field, $value)
+    {
         if (is_array($value)) {
             return new Terms($field, $value);
         } else {
@@ -722,7 +744,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function createTemplates($indexToMetadatas) {
+    public function createTemplates($indexToMetadatas)
+    {
         $elasticaTemplate = new Template($this->client);
 
         try {
@@ -749,7 +772,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function getTemplate(ClassMetadata $classMetadata) {
+    public function getTemplate(ClassMetadata $classMetadata)
+    {
         $elasticaTemplate = new Template($this->client);
 
         try {
@@ -763,7 +787,8 @@ class Client implements SearchClientInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteTemplate(ClassMetadata $classMetadata) {
+    public function deleteTemplate(ClassMetadata $classMetadata)
+    {
         $elasticaTemplate = new Template($this->client);
 
         try {

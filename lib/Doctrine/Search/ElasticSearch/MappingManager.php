@@ -8,7 +8,8 @@ use Elastica\Exception\ResponseException;
 use Elastica\Index;
 use Elastica\Type;
 
-class MappingManager {
+class MappingManager
+{
     /** @var SearchManager */
     protected $sm;
     /** @var \Doctrine\Search\SearchClientInterface */
@@ -16,7 +17,8 @@ class MappingManager {
     /** @var string */
     protected $env;
 
-    public function __construct(SearchManager $sm, $env) {
+    public function __construct(SearchManager $sm, $env)
+    {
         $this->sm = $sm;
         $this->client = $sm->getClient();
         $this->env = $env;
@@ -25,7 +27,8 @@ class MappingManager {
     /**
      * Refreshes all the templates and mappings
      */
-    public function update() {
+    public function update()
+    {
         $this->updateTemplates();
         $this->updateMappings();
     }
@@ -33,7 +36,8 @@ class MappingManager {
     /**
      * Update existing templates
      */
-    public function updateTemplates() {
+    public function updateTemplates()
+    {
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
         $indexToMetadatas = array();
 
@@ -45,7 +49,7 @@ class MappingManager {
             }
         }
 
-        if (! empty($indexToMetadatas)) {
+        if (!empty($indexToMetadatas)) {
             $this->client->createTemplates($indexToMetadatas);
         }
     }
@@ -53,7 +57,8 @@ class MappingManager {
     /**
      * Create new mappings or update existing mappings
      */
-    public function updateMappings() {
+    public function updateMappings()
+    {
         /** @var ClassMetadata[] $metadatas */
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
 
@@ -68,14 +73,14 @@ class MappingManager {
             $indexName = $metadata->timeSeriesScale ? $metadata->getCurrentTimeSeriesIndex() : $metadata->index;
             /** @var Index $index */
             $index = $this->client->getIndex($indexName);
-            if (! $index->exists()) {
+            if (!$index->exists()) {
                 $this->client->createIndex($indexName, $metadata->getSettings());
             }
 
             // create the type if it doesn't exist yet
             if ($metadata->type) {
                 $type = new Type($index, $metadata->type);
-                if (! $type->exists()) {
+                if (!$type->exists()) {
                     $this->client->createType($metadata);
                 }
 
@@ -91,7 +96,8 @@ class MappingManager {
     /**
      * Delete all templates
      */
-    public function deleteAllTemplates() {
+    public function deleteAllTemplates()
+    {
         /** @var ClassMetadata[] $metadatas */
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
         foreach ($metadatas as $metadata) {
@@ -102,14 +108,15 @@ class MappingManager {
     /**
      * Delete all indices
      */
-    public function deleteAllIndices() {
+    public function deleteAllIndices()
+    {
         /** @var ClassMetadata[] $metadatas */
         $metadatas = $this->sm->getMetadataFactory()->getAllMetadata();
         foreach ($metadatas as $metadata) {
             try {
                 $this->client->deleteIndex($metadata->getIndexForRead());
             } catch (ResponseException $e) {
-                if(strpos($e->getResponse()->getError(), 'IndexMissingException') === false) {
+                if (strpos($e->getResponse()->getError(), 'IndexMissingException') === false) {
                     // The original error from ES is not "IndexMissingException". We shouldn't swallow it.
                     throw $e;
                 }

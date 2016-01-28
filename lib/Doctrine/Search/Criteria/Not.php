@@ -4,7 +4,8 @@ namespace Doctrine\Search\Criteria;
 
 use InvalidArgumentException;
 
-class Not {
+class Not
+{
     protected $value;
 
     /**
@@ -12,8 +13,9 @@ class Not {
      *
      * @throws InvalidArgumentException
      */
-    public function __construct($value) {
-        if (! $value) {
+    public function __construct($value)
+    {
+        if (!$value) {
             throw new InvalidArgumentException('A value must be provided');
         }
         $this->value = $value;
@@ -22,7 +24,8 @@ class Not {
     /**
      * @return int|string|array
      */
-    public function getValue() {
+    public function getValue()
+    {
         return $this->value;
     }
 }

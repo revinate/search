@@ -32,14 +32,14 @@ use Doctrine\Common\EventArgs;
 class PostFlushEventArgs extends EventArgs
 {
     /**
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $sm;
 
     /**
      * Constructor.
      *
-     * @param \Doctrine\Search\SearchManager $sm
+     * @param SearchManager $sm
      */
     public function __construct(SearchManager $sm)
     {
@@ -49,7 +49,7 @@ class PostFlushEventArgs extends EventArgs
     /**
      * Retrieve associated SearchManager.
      *
-     * @return \Doctrine\Search\SearchManager
+     * @return SearchManager
      */
     public function getSearchManager()
     {

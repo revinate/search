@@ -8,6 +8,6 @@ use Doctrine\Common\Annotations\Annotation;
  * @Annotation
  * @Target({"PROPERTY"})
  */
-final class ParentField extends Annotation {
-
+final class ParentField extends Annotation
+{
 }

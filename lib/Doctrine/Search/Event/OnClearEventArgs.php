@@ -33,7 +33,7 @@ use Doctrine\Search\SearchManager;
 class OnClearEventArgs extends EventArgs
 {
     /**
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $sm;
 
@@ -45,7 +45,7 @@ class OnClearEventArgs extends EventArgs
     /**
      * Constructor.
      *
-     * @param \Doctrine\Search\SearchManager $sm
+     * @param SearchManager $sm
      * @param string $entityClass Optional entity class
      */
     public function __construct(SearchManager $sm, $entityClass = null)
@@ -57,7 +57,7 @@ class OnClearEventArgs extends EventArgs
     /**
      * Retrieve associated SearchManager.
      *
-     * @return \Doctrine\Search\SearchManager
+     * @return SearchManager
      */
     public function getSearchManager()
     {

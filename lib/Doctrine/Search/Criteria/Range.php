@@ -4,7 +4,8 @@ namespace Doctrine\Search\Criteria;
 
 use Doctrine\Search\Exception\InvalidArgumentException;
 
-class Range {
+class Range
+{
     /** @var string comparators */
     const LTE = 'lte';
     const LT = 'lt';
@@ -24,7 +25,8 @@ class Range {
      *
      * @throws InvalidArgumentException
      */
-    public function __construct($comparator1, $value1, $comparator2 = null, $value2 = null) {
+    public function __construct($comparator1, $value1, $comparator2 = null, $value2 = null)
+    {
         $this->comparator1 = $comparator1;
         $this->value1 = $value1;
 
@@ -38,28 +40,32 @@ class Range {
     /**
      * @return string
      */
-    public function getComparator1() {
+    public function getComparator1()
+    {
         return $this->comparator1;
     }
 
     /**
      * @return string
      */
-    public function getValue1() {
+    public function getValue1()
+    {
         return $this->value1;
     }
 
     /**
      * @return string
      */
-    public function getComparator2() {
+    public function getComparator2()
+    {
         return $this->comparator2;
     }
 
     /**
      * @return string
      */
-    public function getValue2() {
+    public function getValue2()
+    {
         return $this->value2;
     }
 }

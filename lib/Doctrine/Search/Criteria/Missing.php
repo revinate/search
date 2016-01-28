@@ -2,7 +2,8 @@
 
 namespace Doctrine\Search\Criteria;
 
-class Missing {
+class Missing
+{
     /** @var bool */
     protected $existence;
     /** @var bool */
@@ -12,7 +13,8 @@ class Missing {
      * @param bool $existence
      * @param bool $nullValue
      */
-    public function __construct($existence = null, $nullValue = null) {
+    public function __construct($existence = null, $nullValue = null)
+    {
         $this->existence = $existence;
         $this->nullValue = $nullValue;
     }
@@ -20,28 +22,32 @@ class Missing {
     /**
      * @return boolean
      */
-    public function getExistence() {
+    public function getExistence()
+    {
         return $this->existence;
     }
 
     /**
      * @param boolean $existence
      */
-    public function setExistence($existence) {
+    public function setExistence($existence)
+    {
         $this->existence = $existence;
     }
 
     /**
      * @return boolean
      */
-    public function getNullValue() {
+    public function getNullValue()
+    {
         return $this->nullValue;
     }
 
     /**
      * @param boolean $nullValue
      */
-    public function setNullValue($nullValue) {
+    public function setNullValue($nullValue)
+    {
         $this->nullValue = $nullValue;
     }
 }

@@ -8,7 +8,8 @@ use Doctrine\Common\Annotations\Annotation\Target;
  * @Annotation
  * @Target({"PROPERTY"})
  */
-final class VersionField extends Annotation{
+final class VersionField extends Annotation
+{
     /**
      * Version type to use, check https://www.elastic.co/guide/en/elasticsearch/reference/1.4/docs-index_.html#index-versioning
      *

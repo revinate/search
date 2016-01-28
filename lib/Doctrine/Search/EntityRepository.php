@@ -20,9 +20,8 @@
 namespace Doctrine\Search;
 
 use Doctrine\Common\Persistence\ObjectRepository;
-use Doctrine\Search\SearchManager;
 use Doctrine\Search\Mapping\ClassMetadata;
-use Doctrine\Search\Exception\DoctrineSearchException;
+use Doctrine\Search\SearchManager;
 use PhpOption\Option;
 
 class EntityRepository implements ObjectRepository
@@ -38,7 +37,7 @@ class EntityRepository implements ObjectRepository
     private $_class;
 
     /**
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $_sm;
 
@@ -52,13 +51,14 @@ class EntityRepository implements ObjectRepository
     /**
      * Finds an object by its primary key / identifier using the realtime API
      *
-     * @param mixed  $id      The identifier.
-     * @param string $index   The optional index to check, since wildcard is not supported for time series indices
+     * @param mixed $id The identifier.
+     * @param string $index The optional index to check, since wildcard is not supported for time series indices
      * @param string $routing The optional routing parameter
      *
      * @return object The object.
      */
-    public function get($id, $index = null, $routing = null) {
+    public function get($id, $index = null, $routing = null)
+    {
         return $this->_sm->get($this->_entityName, $id, $index, $routing);
     }
 
@@ -78,7 +78,8 @@ class EntityRepository implements ObjectRepository
      * @param $id
      * @return Option
      */
-    public function findOption($id) {
+    public function findOption($id)
+    {
         return Option::fromValue($this->find($id));
     }
 
@@ -113,12 +114,13 @@ class EntityRepository implements ObjectRepository
 
     /**
      * @param ClassMetadata[] $criteria
-     * @param int             $sizePerShard   Size of documents to be returned per shard
-     * @param string          $expiryTime     Expiration time of the scroll
+     * @param int $sizePerShard Size of documents to be returned per shard
+     * @param string $expiryTime Expiration time of the scroll
      *
      * @return \Generator
      */
-    public function scanBy(array $criteria, $sizePerShard = 100, $expiryTime = '1m') {
+    public function scanBy(array $criteria, $sizePerShard = 100, $expiryTime = '1m')
+    {
         return $this->_sm->getUnitOfWork()->scanBy($this->_class, $criteria, $sizePerShard, $expiryTime);
     }
 
@@ -140,7 +142,8 @@ class EntityRepository implements ObjectRepository
      * @param array $criteria
      * @return Option
      */
-    public function findOneOptionBy(array $criteria) {
+    public function findOneOptionBy(array $criteria)
+    {
         return Option::fromValue($this->findOneBy($criteria));
     }
 
@@ -158,7 +161,7 @@ class EntityRepository implements ObjectRepository
      * Execute a direct delete by query on the associated index and type
      *
      * @param BaseElasticsearchEntity $entity
-     * @param bool                    $flush
+     * @param bool $flush
      */
     public function delete($entity, $flush = true)
     {
@@ -201,7 +204,7 @@ class EntityRepository implements ObjectRepository
     /**
      * Returns the search manager
      *
-     * @return \Doctrine\Search\SearchManager
+     * @return SearchManager
      */
     public function getSearchManager()
     {
@@ -210,11 +213,12 @@ class EntityRepository implements ObjectRepository
 
     /**
      * @param BaseElasticsearchEntity $entity
-     * @param bool                    $refresh
+     * @param bool $refresh
      *
      * @throws \Exception
      */
-    public function save($entity, $refresh = false) {
+    public function save($entity, $refresh = false)
+    {
         $this->_sm->persist($entity);
         $this->_sm->flush($entity);
         if ($refresh) {

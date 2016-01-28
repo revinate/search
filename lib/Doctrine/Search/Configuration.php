@@ -19,11 +19,14 @@
 
 namespace Doctrine\Search;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Search\Exception\DoctrineSearchException;
 use Doctrine\Search\Exception\InvalidArgumentException;
 use Doctrine\Search\Mapping\ClassMetadataFactory;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Search\Mapping\Driver\AnnotationDriver;
 use Doctrine\Search\Serializer\CallbackSerializer;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -95,9 +98,9 @@ class Configuration
      */
     public function newDefaultAnnotationDriver(array $paths = array())
     {
-        $reader = new \Doctrine\Common\Annotations\AnnotationReader();
+        $reader = new AnnotationReader();
 
-        return new \Doctrine\Search\Mapping\Driver\AnnotationDriver($reader, $paths);
+        return new AnnotationDriver($reader, $paths);
     }
 
     /**
@@ -186,7 +189,7 @@ class Configuration
      *
      * @return string
      *
-     * @throws ORMException
+     * @throws InvalidArgumentException
      */
     public function getEntityNamespace($entityNamespaceAlias)
     {

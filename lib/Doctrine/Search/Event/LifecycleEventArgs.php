@@ -34,7 +34,7 @@ use Doctrine\Search\SearchManager;
 class LifecycleEventArgs extends EventArgs
 {
     /**
-     * @var \Doctrine\Search\SearchManager
+     * @var SearchManager
      */
     private $sm;
 
@@ -47,7 +47,7 @@ class LifecycleEventArgs extends EventArgs
      * Constructor
      *
      * @param object $entity
-     * @param \Doctrine\Search\SearchManager $em
+     * @param SearchManager $sm
      */
     public function __construct($entity, SearchManager $sm)
     {
@@ -68,7 +68,7 @@ class LifecycleEventArgs extends EventArgs
     /**
      * Retrieve associated SearchManager.
      *
-     * @return \Doctrine\Search\SearchManager
+     * @return SearchManager
      */
     public function getSearchManager()
     {

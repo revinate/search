@@ -5,8 +5,6 @@ Note: This project is a prototype at the moment. See `demo` folder for practical
 __Supported search engines__
 
 * [ElasticSearch](http://www.elasticsearch.org/) (functional)
-* [Solr](http://lucene.apache.org/solr/) (partial implementation)
-
 
 __Features__
 * SearchManager

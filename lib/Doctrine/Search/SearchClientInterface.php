@@ -62,10 +62,10 @@ interface SearchClientInterface
      * Finds document by specified criteria.
      *
      * @param ClassMetadata $class
-     * @param array         $criteria
-     * @param array         $orderBy
-     * @param int           $limit
-     * @param int           $offset
+     * @param array $criteria
+     * @param array $orderBy
+     * @param int $limit
+     * @param int $offset
      */
     public function findBy(ClassMetadata $class, array $criteria, array $orderBy = null, $limit = null, $offset = null);
 
@@ -88,7 +88,7 @@ interface SearchClientInterface
      * Creates a document index
      *
      * @param string $name The name of the index.
-     * @param string $config The configuration of the index.
+     * @param array $config The configuration of the index.
      */
     public function createIndex($name, array $config = array());
 
@@ -156,10 +156,10 @@ interface SearchClientInterface
     /**
      * Generate query used by findBy()
      *
-     * @param array      $criteria
-     * @param array|null $orderBy
-     * @param int        $limit
-     * @param int        $offset
+     * @param array $criteria
+     * @param array $orderBy
+     * @param int $limit
+     * @param int $offset
      *
      * @return Query
      */
@@ -176,7 +176,7 @@ interface SearchClientInterface
      */
     public function generateFilterBy(array $criteria);
 
-        /**
+    /**
      * Update the existing field mapping
      *
      * @param ClassMetadata $class

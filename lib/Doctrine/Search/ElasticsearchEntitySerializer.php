@@ -9,7 +9,8 @@ use Doctrine\Search\Mapping\Annotations\ElasticField;
 use Elastica\Result;
 
 
-class ElasticsearchEntitySerializer {
+class ElasticsearchEntitySerializer
+{
     protected static $entityReflectionCaches = array();
 
     /** @var AnnotationReader */
@@ -18,7 +19,7 @@ class ElasticsearchEntitySerializer {
     /** @var string */
     protected $elasticFieldAnnotationClass = 'Doctrine\Search\Mapping\Annotations\ElasticField';
 
-    /** @var string  */
+    /** @var string */
     protected $versionFieldAnnotationClass = 'Doctrine\Search\Mapping\Annotations\VersionField';
 
     /** @var ElasticsearchEntitySerializer */
@@ -27,8 +28,9 @@ class ElasticsearchEntitySerializer {
     /**
      * Constructor
      */
-    private function __construct() {
-        if (! self::$reader) {
+    private function __construct()
+    {
+        if (!self::$reader) {
             self::$reader = new CachedReader(new AnnotationReader(), new ArrayCache());
         }
     }
@@ -36,8 +38,9 @@ class ElasticsearchEntitySerializer {
     /**
      * @return ElasticsearchEntitySerializer
      */
-    public static function getInstance() {
-        if (! self::$instance) {
+    public static function getInstance()
+    {
+        if (!self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -51,7 +54,8 @@ class ElasticsearchEntitySerializer {
      * @return array
      * @throws \Exception
      */
-    public function serialize(BaseElasticsearchEntity $entity) {
+    public function serialize(BaseElasticsearchEntity $entity)
+    {
         $esDocument = array();
 
         $properties = $this->getAllClassProperties($entity);
@@ -92,10 +96,11 @@ class ElasticsearchEntitySerializer {
      * @return mixed
      * @throws \Exception
      */
-    protected function getPropertyValueByName($entity, $propertyName) {
+    protected function getPropertyValueByName($entity, $propertyName)
+    {
         /** @var ElasticField $elasticFieldAnnotation */
         $getter = 'get' . ucfirst($propertyName);
-        if (! is_callable(array($entity, $getter))) {
+        if (!is_callable(array($entity, $getter))) {
             throw new \Exception('Getter function is not callable: ' . $getter . ' for entity ' . get_class($entity));
         }
         return $entity->$getter();
@@ -110,9 +115,10 @@ class ElasticsearchEntitySerializer {
      *
      * @throws \Exception
      */
-    protected function setPropertyValueByName($entity, $propertyName, $value) {
+    protected function setPropertyValueByName($entity, $propertyName, $value)
+    {
         $setter = 'set' . ucfirst($propertyName);
-        if (! is_callable(array($entity, $setter))) {
+        if (!is_callable(array($entity, $setter))) {
             throw new \Exception('Setter function is not callable: ' . $setter . ' for entity ' . get_class($entity));
         }
 
@@ -120,14 +126,15 @@ class ElasticsearchEntitySerializer {
     }
 
     /**
-     * @param string|Result|array     $esDocument
+     * @param string|Result|array $esDocument
      * @param BaseElasticsearchEntity $deserializingToEntity
      *
      * @return BaseElasticsearchEntity
      * @throws InvalidArgumentException
      * @throws \Exception
      */
-    public function deserialize($esDocument, BaseElasticsearchEntity $deserializingToEntity) {
+    public function deserialize($esDocument, BaseElasticsearchEntity $deserializingToEntity)
+    {
         // some pre process to convert the data into array for the ease of process
         if (is_string($esDocument)) {
             // if it's a string, assume it's a json sting
@@ -182,7 +189,8 @@ class ElasticsearchEntitySerializer {
      *
      * @return \ReflectionProperty[]
      */
-    protected function getAllClassProperties($object) {
+    protected function getAllClassProperties($object)
+    {
         $reflectionObj = new \ReflectionObject($object);
         $properties = $reflectionObj->getProperties();
         while ($parent = $reflectionObj->getParentClass()) {

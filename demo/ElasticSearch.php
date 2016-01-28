@@ -2,7 +2,6 @@
 
 require_once 'config.php';
 
-use Doctrine\Common\ClassLoader;
 use Doctrine\Search\Configuration;
 use Doctrine\Common\EventManager;
 use Doctrine\Search\SearchManager;
