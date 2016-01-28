@@ -34,6 +34,7 @@ use Elastica\Filter\BoolAnd;
 class SearchManager implements ObjectManager
 {
     const CRITERIA_OR = 'or';
+    const CRITERIA_AND = 'and';
 
     /**
      * @var SearchClientInterface

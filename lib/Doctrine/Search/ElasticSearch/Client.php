@@ -265,6 +265,8 @@ class Client implements SearchClientInterface
                 $filter->addFilter($this->getFilterForHasParentOrHasChild($key, $value));
             } elseif ($key == SearchManager::CRITERIA_OR) {
                 $filter->addFilter($this->generateOrFilterBy($value));
+            } elseif ($key == SearchManager::CRITERIA_AND) {
+                $filter->addFilter($this->generateAndFilterBy($value));
             } elseif ($value instanceof Range) {
                 $filter->addFilter($this->getRangeFilter($key, $value));
             } elseif ($value instanceof Not) {
@@ -668,24 +670,30 @@ class Client implements SearchClientInterface
     }
 
     /**
+     * If key is _child.type.field, the value should be the term value or not equal.
+     * if key is _child.type, the value should be a criteria
      * @param string $key
-     * @param string $value
+     * @param string|Not|array $value
      *
      * @return HasChild|HasParent
      * @throws \Exception
      */
     protected function getFilterForHasParentOrHasChild($key, $value) {
         $parts = explode('.', $key);
-        if (3 != count($parts)) {
-            throw new InvalidArgumentException(__METHOD__ . ': Find by child or parent must be of the form "_child.type.field" or "_parent.type.field"');
+        if (3 != count($parts) && 2 != count($parts)) {
+            throw new InvalidArgumentException(__METHOD__ . ': Find by child or parent must be of the form "_child.type[.field]" or "_parent.type[.field]"');
         }
 
         $type = $parts[1];
-        $field = $parts[2];
+        $field = isset($parts[2]) ? $parts[2] : null;
 
-        $filter = $this->getTermOrTermsFilter($field, $value);
-        if ($value instanceof Not) {
-            $filter = $this->getNotFilter($field, $value);
+        if ($field) {
+            $filter = $this->getTermOrTermsFilter($field, $value);
+            if ($value instanceof Not) {
+                $filter = $this->getNotFilter($field, $value);
+            }
+        } else {
+            $filter = $this->generateAndFilterBy($value);
         }
 
         if ($this->isHasChild($key)) {
